@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from flask_cors import CORS
 
 # Load environment variables
-openai.api_key = os.getenv("OPENAI_API_KEY") 
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Flask app setup
 app = Flask(__name__)
@@ -40,7 +40,7 @@ def ask_chatgpt(prompt):
     except Exception as e:
         return f"Error communicating with ChatGPT: {str(e)}"
 
-# Flask route for chatbot
+# Flask route for chatbot with feedback mechanism
 @app.route('/chat', methods=['POST'])
 def chat():
     user_input = request.json.get("message")
@@ -55,7 +55,40 @@ def chat():
     # Combine user input with website content
     prompt = f"The following content is from the website:\n{website_content}\n\nUser query: {user_input}"
     response = ask_chatgpt(prompt)
+    
     return jsonify({"response": response})
+
+# Flask route for refining response based on user feedback
+@app.route('/feedback', methods=['POST'])
+def feedback():
+    # Get feedback data from user
+    user_feedback = request.json.get("feedback")  # thumbs_up or thumbs_down
+    user_response = request.json.get("response")  # the response to be refined
+
+    if not user_feedback or not user_response:
+        return jsonify({"error": "Feedback and response are required"}), 400
+
+    if user_feedback == "thumbs_up":
+        # Optionally, save or log positive feedback
+        return jsonify({"message": "Thank you for your feedback! Glad you liked it!"})
+
+    elif user_feedback == "thumbs_down":
+        # Optionally, trigger a refinement based on negative feedback
+        refined_response = refine_response(user_response)
+        return jsonify({"message": "Thank you for your feedback. Here's a refined response:", "response": refined_response})
+
+    else:
+        return jsonify({"error": "Invalid feedback value. Please use 'thumbs_up' or 'thumbs_down'."}), 400
+
+# Function to refine the response (you can create your own logic here)
+def refine_response(original_response):
+    try:
+        # Modify the response based on some logic, or request the AI to rephrase the response
+        prompt = f"Refine the following response to make it more clear and helpful: {original_response}"
+        refined_response = ask_chatgpt(prompt)
+        return refined_response
+    except Exception as e:
+        return f"Error refining response: {str(e)}"
 
 # Run Flask app
 if __name__ == '__main__':
