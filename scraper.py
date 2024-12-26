@@ -7,13 +7,14 @@ from dotenv import load_dotenv
 from flask_cors import CORS
 
 # Load environment variables
+load_dotenv()  # Ensure to load environment variables from a .env file
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Flask app setup
 app = Flask(__name__)
 
-# Enable CORS for all routes
-CORS(app)  # This will allow all domains to access your Flask app
+# Enable CORS with specific configuration
+CORS(app, resources={r"/chat/*": {"origins": "*"}, r"/feedback/*": {"origins": "*"}})
 
 # Function to scrape website content
 def fetch_website_content(url):
@@ -25,11 +26,11 @@ def fetch_website_content(url):
     except Exception as e:
         return f"Error fetching content: {str(e)}"
 
-# ChatGPT interaction function (updated for new API and chat completions)
+# ChatGPT interaction function
 def ask_chatgpt(prompt):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",  # Replace "gpt-4" with "gpt-3.5-turbo" if you are using that model
+            model="gpt-4",  # Replace with "gpt-3.5-turbo" if using that model
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt}
@@ -40,9 +41,13 @@ def ask_chatgpt(prompt):
     except Exception as e:
         return f"Error communicating with ChatGPT: {str(e)}"
 
-# Flask route for chatbot with feedback mechanism
-@app.route('/chat', methods=['POST'])
+# Flask route for chatbot
+@app.route('/chat', methods=['POST', 'OPTIONS'])
 def chat():
+    if request.method == 'OPTIONS':
+        # Handle CORS preflight request
+        return '', 200  # Return an empty response with status 200 for OPTIONS requests
+
     user_input = request.json.get("message")
     if not user_input:
         return jsonify({"error": "Message is required"}), 400
@@ -58,9 +63,13 @@ def chat():
     
     return jsonify({"response": response})
 
-# Flask route for refining response based on user feedback
-@app.route('/feedback', methods=['POST'])
+# Flask route for feedback mechanism
+@app.route('/feedback', methods=['POST', 'OPTIONS'])
 def feedback():
+    if request.method == 'OPTIONS':
+        # Handle CORS preflight request
+        return '', 200  # Return an empty response with status 200 for OPTIONS requests
+
     # Get feedback data from user
     user_feedback = request.json.get("feedback")  # thumbs_up or thumbs_down
     user_response = request.json.get("response")  # the response to be refined
