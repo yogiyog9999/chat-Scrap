@@ -26,6 +26,22 @@ def fetch_website_content(url):
     except Exception as e:
         return f"Error fetching content: {str(e)}"
 
+# Keyword-based response logic
+def check_for_keywords(message):
+    keyword_responses = {
+        'hey': 'Hi there! How can I assist you today?',
+        'hello': 'Hello! What can I do for you?',
+        'openai': 'OpenAI powers this chatbot to provide helpful responses.',
+        'contact': 'You can contact us at info@isigmasolutions.com.',
+        'location': 'iSigma Solutions is located in Mumbai, India.',
+        # Add more keywords and responses as needed
+    }
+    
+    for keyword, response in keyword_responses.items():
+        if keyword.lower() in message.lower():
+            return response
+    return None  # Return None if no keyword matches
+
 # ChatGPT interaction function
 def ask_chatgpt(prompt):
     try:
@@ -52,6 +68,11 @@ def chat():
     if not user_input:
         return jsonify({"error": "Message is required"}), 400
 
+    # Check for keyword-based response first
+    keyword_response = check_for_keywords(user_input)
+    if keyword_response:
+        return jsonify({"response": keyword_response, "ai": 1})  # Respond directly if a keyword is matched
+
     # Fetch website content
     website_content = fetch_website_content("https://isigmasolutions.com/")
     if "Error" in website_content:
@@ -60,8 +81,8 @@ def chat():
     # Combine user input with website content
     prompt = f"The following content is from the website:\n{website_content}\n\nUser query: {user_input}"
     response = ask_chatgpt(prompt)
-    
-    return jsonify({"response": response})
+
+    return jsonify({"response": response, "ai": 0})  # "ai": 0 indicates the response is from ChatGPT
 
 # Flask route for feedback mechanism
 @app.route('/feedback', methods=['POST', 'OPTIONS'])
