@@ -60,7 +60,6 @@ def chat():
 
 # Flask route for refining response based on user feedback
 @app.route('/feedback', methods=['POST'])
-@cross_origin()
 def feedback():
     user_feedback = request.json.get("feedback")
     user_response = request.json.get("response")
