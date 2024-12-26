@@ -73,7 +73,8 @@ def feedback():
 
     elif user_feedback == "thumbs_down":
         refined_response = refine_response(user_response)
-        return jsonify({"response": "Thank you for your feedback. Here's a refined response:", "response": refined_response})
+        return jsonify({"response": "I apologize if my response didn't meet your expectations. let me offer a better one for you:
+  . ", refined_response})
 
     else:
         return jsonify({"error": "Invalid feedback value. Please use 'thumbs_up' or 'thumbs_down'."}), 400
