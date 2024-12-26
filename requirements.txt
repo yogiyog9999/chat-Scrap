@@ -1,6 +1,6 @@
 Flask
 requests
 beautifulsoup4
-openai
+openai==0.28
 python-dotenv
 flask-cors
