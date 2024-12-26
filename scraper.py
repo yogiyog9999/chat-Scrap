@@ -1,43 +1,63 @@
+import os
+import openai
 from flask import Flask, request, jsonify
-import requests
 from bs4 import BeautifulSoup
-import time
+import requests
+from dotenv import load_dotenv
+from flask_cors import CORS
 
+# Load environment variables
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Flask app setup
 app = Flask(__name__)
 
-@app.route('/scrape', methods=['POST'])
-def scrape():
-    data = request.json
-    urls = data.get("urls", [])
-    scraped_content = {}
+# Enable CORS for all routes
+CORS(app)  # This will allow all domains to access your Flask app
 
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
+# Function to scrape website content
+def fetch_website_content(url):
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        # Extract visible text from the website
+        return ' '.join(soup.stripped_strings)
+    except Exception as e:
+        return f"Error fetching content: {str(e)}"
 
-    for url in urls:
-        try:
-            # Fetch the page content with headers
-            response = requests.get(url, headers=headers)
-            
-            # If response status code is not 200, skip the scraping
-            if response.status_code != 200:
-                scraped_content[url] = f"Error: {response.status_code} - {response.reason}"
-                continue
+# ChatGPT interaction function (updated for new API and chat completions)
+def ask_chatgpt(prompt):
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # Replace "gpt-4" with "gpt-3.5-turbo" if you are using that model
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        # Extract and return the AI's response
+        return response['choices'][0]['message']['content']
+    except Exception as e:
+        return f"Error communicating with ChatGPT: {str(e)}"
 
-            soup = BeautifulSoup(response.text, 'html.parser')
+# Flask route for chatbot
+@app.route('/chat', methods=['POST'])
+def chat():
+    user_input = request.json.get("message")
+    if not user_input:
+        return jsonify({"error": "Message is required"}), 400
 
-            # Extract the text of the page (you can customize this to extract specific data)
-            scraped_content[url] = soup.get_text(strip=True)
-            
-            # Adding delay to avoid rate limiting
-            time.sleep(1)
-        except Exception as e:
-            # If any error occurs, return the error message
-            scraped_content[url] = f"Error: {str(e)}"
-    
-    # Return the scraped data as a JSON response
-    return jsonify(scraped_content)
+    # Fetch website content
+    website_content = fetch_website_content("https://isigmasolutions.com/")
+    if "Error" in website_content:
+        return jsonify({"error": website_content}), 500
 
+    # Combine user input with website content
+    prompt = f"The following content is from the website:\n{website_content}\n\nUser query: {user_input}"
+    response = ask_chatgpt(prompt)
+    return jsonify({"response": response})
+
+# Run Flask app
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000)  # Change port if needed
