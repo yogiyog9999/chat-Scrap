@@ -1,6 +1,6 @@
 import os
 import openai
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from bs4 import BeautifulSoup
 import requests
 from dotenv import load_dotenv
@@ -13,8 +13,14 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # Flask app setup
 app = Flask(__name__)
 
-# Enable CORS with specific configuration
-CORS(app, resources={r"/chat/*": {"origins": "*"}, r"/feedback/*": {"origins": "*"}})
+# Enable CORS with specific configuration for your frontend
+CORS(app, resources={
+    r"/*": {
+        "origins": ["https://dev999.devstage24x7.com"],  # Allowed origin
+        "methods": ["POST", "OPTIONS"],  # Allowed methods
+        "allow_headers": ["Content-Type", "Authorization"],  # Allowed headers
+    }
+})
 
 # Function to scrape website content
 def fetch_website_content(url):
@@ -25,22 +31,6 @@ def fetch_website_content(url):
         return ' '.join(soup.stripped_strings)
     except Exception as e:
         return f"Error fetching content: {str(e)}"
-
-# Keyword-based response logic
-def check_for_keywords(message):
-    keyword_responses = {
-        'hey': 'Hi there! How can I assist you today?',
-        'hello': 'Hello! What can I do for you?',
-        'openai': 'OpenAI powers this chatbot to provide helpful responses.',
-        'contact': 'You can contact us at info@isigmasolutions.com.',
-        'location': 'iSigma Solutions is located in Mumbai, India.',
-        # Add more keywords and responses as needed
-    }
-    
-    for keyword, response in keyword_responses.items():
-        if keyword.lower() in message.lower():
-            return response
-    return None  # Return None if no keyword matches
 
 # ChatGPT interaction function
 def ask_chatgpt(prompt):
@@ -61,17 +51,16 @@ def ask_chatgpt(prompt):
 @app.route('/chat', methods=['POST', 'OPTIONS'])
 def chat():
     if request.method == 'OPTIONS':
-        # Handle CORS preflight request
-        return '', 200  # Return an empty response with status 200 for OPTIONS requests
+        # Handle CORS preflight request (OPTIONS)
+        response = make_response('', 200)
+        response.headers['Access-Control-Allow-Origin'] = 'https://dev999.devstage24x7.com'
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return response
 
     user_input = request.json.get("message")
     if not user_input:
         return jsonify({"error": "Message is required"}), 400
-
-    # Check for keyword-based response first
-    keyword_response = check_for_keywords(user_input)
-    if keyword_response:
-        return jsonify({"response": keyword_response, "ai": 1})  # Respond directly if a keyword is matched
 
     # Fetch website content
     website_content = fetch_website_content("https://isigmasolutions.com/")
@@ -81,15 +70,19 @@ def chat():
     # Combine user input with website content
     prompt = f"The following content is from the website:\n{website_content}\n\nUser query: {user_input}"
     response = ask_chatgpt(prompt)
-
-    return jsonify({"response": response, "ai": 0})  # "ai": 0 indicates the response is from ChatGPT
+    
+    return jsonify({"response": response})
 
 # Flask route for feedback mechanism
 @app.route('/feedback', methods=['POST', 'OPTIONS'])
 def feedback():
     if request.method == 'OPTIONS':
-        # Handle CORS preflight request
-        return '', 200  # Return an empty response with status 200 for OPTIONS requests
+        # Handle CORS preflight request (OPTIONS)
+        response = make_response('', 200)
+        response.headers['Access-Control-Allow-Origin'] = 'https://dev999.devstage24x7.com'
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return response
 
     # Get feedback data from user
     user_feedback = request.json.get("feedback")  # thumbs_up or thumbs_down
@@ -119,6 +112,14 @@ def refine_response(original_response):
         return refined_response
     except Exception as e:
         return f"Error refining response: {str(e)}"
+
+# Add custom CORS headers for all responses (preflight handling)
+@app.after_request
+def add_cors_headers(response):
+    response.headers.add("Access-Control-Allow-Origin", "https://dev999.devstage24x7.com")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+    return response
 
 # Run Flask app
 if __name__ == '__main__':
