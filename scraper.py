@@ -53,7 +53,7 @@ def chat():
         return jsonify({"error": website_content}), 500
 
     # Combine user input with website content
-    prompt = f"The following content is from the website:\n{website_content}\n\nUser query: {user_input}"
+    prompt = f"The following content is from the website and reply like as a isigma support team member:\n{website_content}\n\nUser query: {user_input}"
     response = ask_chatgpt(prompt)
     
     return jsonify({"response": response})
