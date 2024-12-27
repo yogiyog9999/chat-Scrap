@@ -21,7 +21,7 @@ cache = LRUCache(maxsize=10)
 def fetch_predefined_pages():
     try:
         # Make a GET request to your API endpoint to get predefined pages
-        response = requests.get("https://dev999.devstage24x7.com/wp-json/chatbox/v1/selected-pages")
+        response = requests.get("https://wallingford.devstage24x7.com/wp-json/chatbox/v1/selected-pages")
         response.raise_for_status()
         # Return the list of page URLs from the response
         return response.json()  # Example: { "home": "https://isigmasolutions.com/", ... }
@@ -75,16 +75,16 @@ def decide_relevant_page(query, predefined_pages):
 # ChatGPT interaction function to mimic human-like support responses
 def ask_chatgpt(prompt):
     try:
-        # Modify the system prompt to simulate a human-like Isigma Support team member
+        # Modify the system prompt to simulate a human-like wallingford Support team member
         prompt_with_human_tone = f"""
-        You are a support agent for Isigma Solutions. Respond to the user's query in a friendly, professional, and helpful manner, 
+        You are a support agent for wallingford. Respond to the user's query in a friendly, professional, and helpful manner, 
         similar to how a support representative would respond. The tone should be clear, empathetic, and solution-oriented.
 
         Here is the information you have about our services and website:
 
         {prompt}
 
-        Please respond in the style of an Isigma support representative.
+        Please respond in the style of an wallingford support representative.
         """
         
         response = openai.ChatCompletion.create(
