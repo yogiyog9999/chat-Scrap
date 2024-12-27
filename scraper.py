@@ -109,6 +109,33 @@ def chat():
     # Ask GPT for a response
     response = ask_chatgpt(prompt)
     return jsonify({"response": response})
+    
+@app.route('/feedback', methods=['POST'])
+def feedback():
+    user_feedback = request.json.get("feedback")
+    user_response = request.json.get("response")
+
+    if not user_feedback or not user_response:
+        return jsonify({"error": "Feedback and response are required"}), 400
+
+    if user_feedback == "thumbs_up":
+        return jsonify({"response": "Thank you for your feedback! Glad you liked it!"})
+
+    elif user_feedback == "thumbs_down":
+        refined_response = refine_response(user_response)
+        return jsonify({"response": "Thank you for your feedback. Here's a refined response:", "response": refined_response})
+
+    else:
+        return jsonify({"error": "Invalid feedback value. Please use 'thumbs_up' or 'thumbs_down'."}), 400
+
+# Function to refine the response
+def refine_response(original_response):
+    try:
+        prompt = f"Refine the following response to make it more clear and helpful: {original_response}"
+        refined_response = ask_chatgpt(prompt)
+        return refined_response
+    except Exception as e:
+        return f"Error refining response: {str(e)}"
 
 # Run Flask app
 if __name__ == '__main__':
