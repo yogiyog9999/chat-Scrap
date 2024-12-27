@@ -5,99 +5,65 @@ from bs4 import BeautifulSoup
 import requests
 from dotenv import load_dotenv
 from flask_cors import CORS
-from cachetools import LRUCache, cached
 
 # Load environment variables
+load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Flask app setup
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
 
-# Cache setup (limit to 10 most recent pages)
-cache = LRUCache(maxsize=10)
+# Enable CORS for all routes
+CORS(app)
 
-# Fetch predefined pages dynamically from the API
-def fetch_predefined_pages():
+# Predefined keyword responses
+KEYWORD_RESPONSES = {
+    "hi": "Hello! How can I assist you today?",
+    "hello": "Hi there! How can I help?",
+    "hey": "Hey! How can I assist you?",
+    "contact": "You can reach us via email at support@example.com or call us at +123456789.",
+    "call": "Please call us at +123456789 for assistance.",
+    "phone": "Our phone number is +123456789.",
+    "email": "You can email us at support@example.com.",
+    "address": "Our address is 1234 Example Street, Example City, EX 12345."
+}
+
+# Function to check for keyword matches
+def check_keywords(user_input):
+    for keyword, response in KEYWORD_RESPONSES.items():
+        if keyword.lower() in user_input.lower():
+            return response
+    return None
+
+# Function to fetch selected page URLs from the API
+def fetch_selected_pages():
     try:
-        # Make a GET request to your API endpoint to get predefined pages
         response = requests.get("https://wallingford.devstage24x7.com/wp-json/chatbox/v1/selected-pages")
-        response.raise_for_status()
-        # Return the list of page URLs from the response
-        return response.json()  # Example: { "home": "https://isigmasolutions.com/", ... }
+        return response.json() if response.status_code == 200 else {}
     except Exception as e:
-        return f"Error fetching predefined pages: {str(e)}"
+        return {"error": f"Error fetching selected pages: {str(e)}"}
 
-# Fetch content with caching
-@cached(cache)
+# Function to fetch content for a specific URL
 def fetch_website_content(url):
     try:
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
-        return ' '.join(soup.stripped_strings)  # Extract visible text
+        return ' '.join(soup.stripped_strings)
     except Exception as e:
         return f"Error fetching content: {str(e)}"
 
-# Summarize content
-def summarize_content(content):
-    try:
-        prompt = f"Summarize the following content to focus on the key points:\n{content}"
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{
-                "role": "system", "content": "You are a helpful summarization assistant."
-            }, {
-                "role": "user", "content": prompt
-            }]
-        )
-        return response['choices'][0]['message']['content']
-    except Exception as e:
-        return f"Error summarizing content: {str(e)}"
-
-# Decide the most relevant page based on the query
-def decide_relevant_page(query, predefined_pages):
-    try:
-        prompt = f"Given the following predefined pages:\n{list(predefined_pages.keys())},\n" \
-                 f"and their purpose (home: general info, about: company details, services: offerings, contact: contact info), " \
-                 f"which page is most relevant for this query: {query}?\nProvide only the page name."
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{
-                "role": "system", "content": "You are a helpful assistant that selects the most relevant page."
-            }, {
-                "role": "user", "content": prompt
-            }]
-        )
-        return response['choices'][0]['message']['content'].strip().lower()
-    except Exception as e:
-        return "home"  # Default to home if there's an error
-
-# ChatGPT interaction function to mimic human-like support responses
+# ChatGPT interaction function
 def ask_chatgpt(prompt):
     try:
-        # Modify the system prompt to simulate a human-like wallingford Support team member
-        prompt_with_human_tone = f"""
-        You are a support agent for wallingford. Respond to the user's query in a friendly, professional, and helpful manner, 
-        similar to how a support representative would respond. The tone should be clear, empathetic, and solution-oriented.
-
-        Here is the information you have about our services and website:
-
-        {prompt}
-
-        Please respond in the style of an wallingford support representative.
-        """
-        
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[{
-                "role": "system", "content": prompt_with_human_tone
+                "role": "system", "content": "You are a helpful assistant."
             }, {
                 "role": "user", "content": prompt
             }]
         )
-        
         return response['choices'][0]['message']['content']
-    
     except Exception as e:
         return f"Error communicating with ChatGPT: {str(e)}"
 
@@ -108,30 +74,33 @@ def chat():
     if not user_input:
         return jsonify({"error": "Message is required"}), 400
 
-    # Fetch predefined pages dynamically from the API
-    predefined_pages = fetch_predefined_pages()
-    if isinstance(predefined_pages, str) and "Error" in predefined_pages:
-        return jsonify({"error": predefined_pages}), 500
+    # Check for keyword matches
+    keyword_response = check_keywords(user_input)
+    if keyword_response:
+        return jsonify({"response": keyword_response})
 
-    # Determine the most relevant page based on the query
-    relevant_page = decide_relevant_page(user_input, predefined_pages)
-    page_url = predefined_pages.get(relevant_page, predefined_pages["home"])
+    # Fetch selected pages from the API
+    selected_pages = fetch_selected_pages()
+    if "error" in selected_pages:
+        return jsonify({"error": selected_pages["error"]}), 500
 
-    # Fetch content from the selected page
-    page_content = fetch_website_content(page_url)
-    if "Error" in page_content:
-        return jsonify({"error": page_content}), 500
+    # Fetch content from selected pages and combine
+    combined_content = ""
+    for title, url in selected_pages.items():
+        content = fetch_website_content(url)
+        if "Error" in content:
+            return jsonify({"error": content}), 500
+        combined_content += f"{title}:\n{content}\n\n"
 
-    # Summarize the content
-    summarized_content = summarize_content(page_content)
-
-    # Combine the summarized content with user query and send it to ChatGPT
-    prompt = f"The following is summarized content from the {relevant_page} page:\n{summarized_content}\n\nUser query: {user_input}"
+    # Create prompt using user input and combined website content
+    prompt = (
+        f"The following content is from the website and reply as a support team member:\n{combined_content}\n\n"
+        f"User query: {user_input}"
+    )
     response = ask_chatgpt(prompt)
-
     return jsonify({"response": response})
 
-# Flask route for feedback
+# Flask route for feedback mechanism
 @app.route('/feedback', methods=['POST'])
 def feedback():
     user_feedback = request.json.get("feedback")
@@ -150,10 +119,10 @@ def feedback():
     else:
         return jsonify({"error": "Invalid feedback value. Please use 'thumbs_up' or 'thumbs_down'."}), 400
 
-# Function to refine response
+# Function to refine the response
 def refine_response(original_response):
     try:
-        prompt = f"Refine the following response to make it clearer and more helpful: {original_response}"
+        prompt = f"Refine the following response to make it more clear and helpful: {original_response}"
         refined_response = ask_chatgpt(prompt)
         return refined_response
     except Exception as e:
