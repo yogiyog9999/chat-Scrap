@@ -17,6 +17,18 @@ app = Flask(__name__)
 # Enable CORS for all routes
 CORS(app)
 
+# Predefined responses for specific keywords
+KEYWORD_RESPONSES = {
+    "hi": "Hello! How can I assist you today?",
+    "hello": "Hi there! How can I help you?",
+    "hey": "Hey! What can I do for you?",
+    "address": "Our office address is 123 Wallingford St, Wallingford, USA.",
+    "contact": "You can contact us via email at support@wallingford.com or call us at +123456789.",
+    "email": "You can reach us at support@wallingford.com.",
+    "phone": "Our contact number is +123456789.",
+    "call": "Please feel free to give us a call at +123456789."
+}
+
 # Fetch selected pages from the API
 def get_selected_pages():
     try:
@@ -83,7 +95,12 @@ def chat():
     if not user_input:
         return jsonify({"error": "Message is required"}), 400
 
-    # Fetch the selected pages dynamically from the API
+    # Check if the user input matches any keyword for predefined responses
+    for keyword, response in KEYWORD_RESPONSES.items():
+        if keyword.lower() in user_input.lower():  # Case-insensitive match
+            return jsonify({"response": response})
+
+    # Fetch the selected pages dynamically from the API if no keyword matched
     selected_pages = get_selected_pages()
 
     if "error" in selected_pages:
@@ -109,7 +126,7 @@ def chat():
     # Ask GPT for a response
     response = ask_chatgpt(prompt)
     return jsonify({"response": response})
-    
+
 @app.route('/feedback', methods=['POST'])
 def feedback():
     user_feedback = request.json.get("feedback")
