@@ -4,3 +4,4 @@ beautifulsoup4
 openai==0.28
 python-dotenv
 flask-cors
+cachetools==5.3.0
