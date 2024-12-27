@@ -17,13 +17,16 @@ CORS(app)  # Enable CORS for all routes
 # Cache setup (limit to 10 most recent pages)
 cache = LRUCache(maxsize=10)
 
-# Predefined pages with URLs
-PREDEFINED_PAGES = {
-    "home": "https://isigmasolutions.com/",
-    "about": "https://isigmasolutions.com/about",
-    "services": "https://isigmasolutions.com/services",
-    "contact": "https://isigmasolutions.com/contact"
-}
+# Fetch predefined pages dynamically from the API
+def fetch_predefined_pages():
+    try:
+        # Make a GET request to your API endpoint to get predefined pages
+        response = requests.get("https://dev999.devstage24x7.com/wp-json/chatbox/v1/selected-pages")
+        response.raise_for_status()
+        # Return the list of page URLs from the response
+        return response.json()  # Example: { "home": "https://isigmasolutions.com/", ... }
+    except Exception as e:
+        return f"Error fetching predefined pages: {str(e)}"
 
 # Fetch content with caching
 @cached(cache)
@@ -52,9 +55,9 @@ def summarize_content(content):
         return f"Error summarizing content: {str(e)}"
 
 # Decide the most relevant page based on the query
-def decide_relevant_page(query):
+def decide_relevant_page(query, predefined_pages):
     try:
-        prompt = f"Given the following predefined pages:\n{list(PREDEFINED_PAGES.keys())},\n" \
+        prompt = f"Given the following predefined pages:\n{list(predefined_pages.keys())},\n" \
                  f"and their purpose (home: general info, about: company details, services: offerings, contact: contact info), " \
                  f"which page is most relevant for this query: {query}?\nProvide only the page name."
         response = openai.ChatCompletion.create(
@@ -105,9 +108,14 @@ def chat():
     if not user_input:
         return jsonify({"error": "Message is required"}), 400
 
+    # Fetch predefined pages dynamically from the API
+    predefined_pages = fetch_predefined_pages()
+    if isinstance(predefined_pages, str) and "Error" in predefined_pages:
+        return jsonify({"error": predefined_pages}), 500
+
     # Determine the most relevant page based on the query
-    relevant_page = decide_relevant_page(user_input)
-    page_url = PREDEFINED_PAGES.get(relevant_page, PREDEFINED_PAGES["home"])
+    relevant_page = decide_relevant_page(user_input, predefined_pages)
+    page_url = predefined_pages.get(relevant_page, predefined_pages["home"])
 
     # Fetch content from the selected page
     page_content = fetch_website_content(page_url)
