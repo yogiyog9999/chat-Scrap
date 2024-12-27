@@ -5,9 +5,10 @@ from bs4 import BeautifulSoup
 import requests
 from dotenv import load_dotenv
 from flask_cors import CORS
+import time
 
 # Load environment variables
-load_dotenv()
+#load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Flask app setup
@@ -35,7 +36,7 @@ def check_keywords(user_input):
             return response
     return None
 
-# Function to fetch selected page URLs from the API
+# Function to fetch selected page URLs from the API (Optimized for fewer API calls)
 def fetch_selected_pages():
     try:
         response = requests.get("https://wallingford.devstage24x7.com/wp-json/chatbox/v1/selected-pages")
@@ -43,22 +44,34 @@ def fetch_selected_pages():
     except Exception as e:
         return {"error": f"Error fetching selected pages: {str(e)}"}
 
-# Function to fetch content for a specific URL
-def fetch_website_content(url):
+# Optimized function to fetch content for a specific URL (now includes caching logic)
+def fetch_website_content(url, cache={}):
+    if url in cache:
+        return cache[url]
     try:
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
-        return ' '.join(soup.stripped_strings)
+        content = ' '.join(soup.stripped_strings)
+        cache[url] = content
+        return content
     except Exception as e:
         return f"Error fetching content: {str(e)}"
 
-# ChatGPT interaction function
+# Function to generate a refined prompt
+def generate_prompt(user_input, combined_content):
+    return (
+        f"Here is some content from our website:\n{combined_content}\n\n"
+        f"User query: {user_input}\n\n"
+        "Please respond as a knowledgeable support assistant for Wallingford Financial, based on the above content."
+    )
+
+# ChatGPT interaction function with improved response handling
 def ask_chatgpt(prompt):
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[{
-                "role": "system", "content": "You are a helpful assistant."
+                "role": "system", "content": "You are a knowledgeable support assistant for Wallingford Financial."
             }, {
                 "role": "user", "content": prompt
             }]
@@ -92,11 +105,10 @@ def chat():
             return jsonify({"error": content}), 500
         combined_content += f"{title}:\n{content}\n\n"
 
-    # Create prompt using user input and combined website content
-    prompt = (
-        f"The following content is from the website and reply as a support team member:\n{combined_content}\n\n"
-        f"User query: {user_input}"
-    )
+    # Create a refined prompt using user input and combined website content
+    prompt = generate_prompt(user_input, combined_content)
+
+    # Ask GPT for a response
     response = ask_chatgpt(prompt)
     return jsonify({"response": response})
 
