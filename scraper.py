@@ -59,16 +59,20 @@ def get_selected_pages():
     api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/selected-pages"
     try:
         response = requests.get(api_url)
-        response.raise_for_status()
-        return response.json()
+        response.raise_for_status()  # Raise an HTTPError for bad responses
+        return response.json()  # Return the JSON content if successful
+    except requests.exceptions.HTTPError as http_err:
+        if response.status_code == 403:
+            return {"error": "Access denied. Please check your API permissions."}
+        return {"error": f"HTTP error occurred: {str(http_err)}"}
     except requests.RequestException as e:
         return {"error": f"Failed to fetch selected pages: {str(e)}"}
 
 # Function to fetch specific content from a URL
 def fetch_website_content(url):
     try:
-        response = requests.get(url)
-        response.raise_for_status()
+        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+        response.raise_for_status()  # Raise an HTTPError for bad responses
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # Extract headers and paragraphs
@@ -79,9 +83,12 @@ def fetch_website_content(url):
             "p": [para.get_text(strip=True) for para in soup.find_all('p')]
         }
         return json.dumps(content)
+    except requests.exceptions.HTTPError as http_err:
+        if response.status_code == 403:
+            return json.dumps({"error": "Access denied. Please check the URL permissions."})
+        return json.dumps({"error": f"HTTP error occurred: {str(http_err)}"})
     except requests.RequestException as e:
         return json.dumps({"error": f"Error fetching content: {str(e)}"})
-
 # Function to generate a refined prompt using JSON content
 def generate_prompt(user_input, json_content):
     return (
