@@ -1,41 +1,25 @@
 import os
 import openai
-from flask import Flask, request, jsonify, session
-from langdetect import detect
-from textblob import TextBlob
-from googletrans import Translator
-from dotenv import load_dotenv
-import logging
+from flask import Flask, request, jsonify
 import requests
 from bs4 import BeautifulSoup
 import json
+from dotenv import load_dotenv
 from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Initialize Flask App
+# Flask app setup
 app = Flask(__name__)
-app.secret_key = os.urandom(24)  # For session management
 CORS(app)  # Enable CORS for all routes
-
-# Set up logging
-logging.basicConfig(level=logging.INFO, filename="chatbot.log", format="%(asctime)s - %(message)s")
-
-# Default language for responses
-DEFAULT_LANGUAGE = "en"
-
-# Chat Memory
-SESSION_MEMORY_LIMIT = 5  # Store the last 5 interactions
-
-# Translator setup
-translator = Translator()
 
 # Predefined responses for specific keywords
 KEYWORD_RESPONSES = {
     "hi": "Hello! How can I assist you today?",
     "hello": "Hi there! How can I help you?",
+    "hey": "Hey! What can I do for you?",
     "address": "Our office address is 123 Wallingford St, Wallingford, USA.",
     "contact": "You can contact us via email at support@wallingford.com or call us at +123456789.",
     "email": "You can reach us at support@wallingford.com.",
@@ -43,26 +27,12 @@ KEYWORD_RESPONSES = {
     "call": "Please feel free to give us a call at +123456789."
 }
 
-# Helper function: Translate text
-def translate_text(text, target_lang):
-    return translator.translate(text, dest=target_lang).text
-
-# Helper function: Analyze sentiment
-def analyze_sentiment(user_input):
-    sentiment = TextBlob(user_input).sentiment.polarity
-    if sentiment > 0.1:
-        return "positive"
-    elif sentiment < -0.1:
-        return "negative"
-    else:
-        return "neutral"
-
 # Function to fetch chatbox settings from API
 def fetch_chatbox_settings():
     try:
         api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/settings"
         response = requests.get(api_url)
-
+        
         if response.status_code == 200:
             return response.json()
         else:
@@ -81,6 +51,18 @@ def update_keyword_responses(settings):
         KEYWORD_RESPONSES["email"] = f"You can reach us at {settings['chatbox_email']}."
     if "chatbox_hours" in settings:
         KEYWORD_RESPONSES["call"] = f"Our operational hours are {settings['chatbox_hours']}."
+    if "chatbox_services" in settings:
+        KEYWORD_RESPONSES["services"] = f"We offer the following services: {settings['chatbox_services']}."
+
+# Function to fetch selected pages from the API
+def get_selected_pages():
+    api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/selected-pages"
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        return {"error": f"Failed to fetch selected pages: {str(e)}"}
 
 # Function to fetch specific content from a URL
 def fetch_website_content(url):
@@ -93,6 +75,7 @@ def fetch_website_content(url):
         content = {
             "h1": [header.get_text(strip=True) for header in soup.find_all('h1')],
             "h2": [header.get_text(strip=True) for header in soup.find_all('h2')],
+            "h3": [header.get_text(strip=True) for header in soup.find_all('h3')],
             "p": [para.get_text(strip=True) for para in soup.find_all('p')]
         }
         return json.dumps(content)
@@ -104,7 +87,7 @@ def generate_prompt(user_input, json_content):
     return (
         f"Here is some content from our website (structured in JSON format):\n{json_content}\n\n"
         f"User query: {user_input}\n\n"
-        "Please respond as a knowledgeable support assistant based on the above content."
+        "Please respond as a knowledgeable support assistant for Wallingford Financial, based on the above content."
     )
 
 # Function to interact with ChatGPT
@@ -113,7 +96,7 @@ def ask_chatgpt(prompt):
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "system", "content": "You are a knowledgeable support assistant for Wallingford Financial."},
                 {"role": "user", "content": prompt}
             ]
         )
@@ -124,17 +107,9 @@ def ask_chatgpt(prompt):
 # Flask route for chatbot
 @app.route('/chat', methods=['POST'])
 def chat():
-    user_input = request.json.get('message', '')
-    user_language = detect(user_input)
-
-    # Translate input to English for processing
-    if user_language != DEFAULT_LANGUAGE:
-        user_input_translated = translate_text(user_input, DEFAULT_LANGUAGE)
-    else:
-        user_input_translated = user_input
-
-    # Sentiment Analysis
-    sentiment = analyze_sentiment(user_input_translated)
+    user_input = request.json.get("message")
+    if not user_input:
+        return jsonify({"error": "Message is required"}), 400
 
     # Fetch dynamic settings and update keyword responses
     settings = fetch_chatbox_settings()
@@ -145,20 +120,31 @@ def chat():
     # Check if the user input matches any predefined keywords
     for keyword, response in KEYWORD_RESPONSES.items():
         if keyword.lower() in user_input.lower():
-            return jsonify({"response": response, "sentiment": sentiment})
+            return jsonify({"response": response})
+
+    # Fetch selected pages if no keyword matched
+    selected_pages = get_selected_pages()
+    if "error" in selected_pages:
+        return jsonify({"error": selected_pages["error"]}), 500
+
+    # Fetch content from selected pages
+    content_from_pages = {}
+    for page_name, page_url in selected_pages.items():
+        json_content = fetch_website_content(page_url)
+        content = json.loads(json_content)
+
+        if "error" in content:
+            return jsonify({"error": content["error"]}), 500
+
+        content_from_pages[page_name] = content
+
+    # Combine content into JSON string
+    combined_content = json.dumps(content_from_pages)
 
     # Create a refined prompt and get GPT response
-    prompt = generate_prompt(user_input_translated, json.dumps(settings))
-    bot_response = ask_chatgpt(prompt)
-
-    # Translate response back to user's language
-    if user_language != DEFAULT_LANGUAGE:
-        bot_response = translate_text(bot_response, user_language)
-
-    # Logging response
-    logging.info(f"Bot response: {bot_response}")
-
-    return jsonify({"response": bot_response, "sentiment": sentiment})
+    prompt = generate_prompt(user_input, combined_content)
+    response = ask_chatgpt(prompt)
+    return jsonify({"response": response})
 
 # Flask route for feedback
 @app.route('/feedback', methods=['POST'])
@@ -173,10 +159,18 @@ def feedback():
         return jsonify({"response": "Thank you for your feedback! Glad you liked it!"})
 
     if user_feedback == "thumbs_down":
-        refined_response = ask_chatgpt(f"Refine this response to be more helpful: {user_response}")
+        refined_response = refine_response(user_response)
         return jsonify({"response": "Thank you for your feedback. Here's a refined response:", "refined_response": refined_response})
 
     return jsonify({"error": "Invalid feedback value. Please use 'thumbs_up' or 'thumbs_down'."}), 400
+
+# Function to refine the response
+def refine_response(original_response):
+    try:
+        prompt = f"Refine the following response to make it more clear and helpful: {original_response}"
+        return ask_chatgpt(prompt)
+    except Exception as e:
+        return f"Error refining response: {str(e)}"
 
 # Run Flask app
 if __name__ == '__main__':
