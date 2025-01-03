@@ -66,8 +66,11 @@ def get_selected_pages():
 
 # Function to fetch specific content from a URL
 def fetch_website_content(url):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
     try:
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -81,6 +84,7 @@ def fetch_website_content(url):
         return json.dumps(content)
     except requests.RequestException as e:
         return json.dumps({"error": f"Error fetching content: {str(e)}"})
+
 
 # Function to generate a refined prompt using JSON content
 def generate_prompt(user_input, json_content):
