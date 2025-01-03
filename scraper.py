@@ -13,9 +13,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Flask app setup
 app = Flask(__name__)
-
-# Enable CORS for all routes
-CORS(app)
+CORS(app)  # Enable CORS for all routes
 
 # Predefined responses for specific keywords
 KEYWORD_RESPONSES = {
@@ -29,40 +27,59 @@ KEYWORD_RESPONSES = {
     "call": "Please feel free to give us a call at +123456789."
 }
 
-# Fetch selected pages from the API
-def get_selected_pages():
+# Function to fetch chatbox settings from API
+def fetch_chatbox_settings():
     try:
-        # Make a GET request to the API that provides the selected pages
-        api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/selected-pages"
+        api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/settings"
         response = requests.get(api_url)
         
         if response.status_code == 200:
-            return response.json()  # Return the JSON response with selected pages
+            return response.json()
         else:
-            return {"error": f"Failed to fetch selected pages: {response.status_code}"}
+            return {"error": f"Failed to fetch chatbox settings: {response.status_code}"}
     except Exception as e:
-        return {"error": f"Error fetching selected pages: {str(e)}"}
+        return {"error": f"Error fetching chatbox settings: {str(e)}"}
+
+# Update the predefined responses with dynamic values
+def update_keyword_responses(settings):
+    global KEYWORD_RESPONSES
+    if "chatbox_address" in settings:
+        KEYWORD_RESPONSES["address"] = f"Our office address is {settings['chatbox_address']}."
+    if "chatbox_contact" in settings:
+        KEYWORD_RESPONSES["contact"] = f"You can contact us via {settings['chatbox_contact']}."
+    if "chatbox_email" in settings:
+        KEYWORD_RESPONSES["email"] = f"You can reach us at {settings['chatbox_email']}."
+    if "chatbox_hours" in settings:
+        KEYWORD_RESPONSES["call"] = f"Our operational hours are {settings['chatbox_hours']}."
+    if "chatbox_services" in settings:
+        KEYWORD_RESPONSES["services"] = f"We offer the following services: {settings['chatbox_services']}."
+
+# Function to fetch selected pages from the API
+def get_selected_pages():
+    api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/selected-pages"
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        return {"error": f"Failed to fetch selected pages: {str(e)}"}
 
 # Function to fetch specific content from a URL
 def fetch_website_content(url):
     try:
         response = requests.get(url)
+        response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Extract headers (h1 to h6) and paragraphs (p)
+        # Extract headers and paragraphs
         content = {
             "h1": [header.get_text(strip=True) for header in soup.find_all('h1')],
             "h2": [header.get_text(strip=True) for header in soup.find_all('h2')],
             "h3": [header.get_text(strip=True) for header in soup.find_all('h3')],
-            "h4": [header.get_text(strip=True) for header in soup.find_all('h4')],
-            "h5": [header.get_text(strip=True) for header in soup.find_all('h5')],
-            "h6": [header.get_text(strip=True) for header in soup.find_all('h6')],
             "p": [para.get_text(strip=True) for para in soup.find_all('p')]
         }
-        
-        # Convert content to JSON format
         return json.dumps(content)
-    except Exception as e:
+    except requests.RequestException as e:
         return json.dumps({"error": f"Error fetching content: {str(e)}"})
 
 # Function to generate a refined prompt using JSON content
@@ -78,11 +95,10 @@ def ask_chatgpt(prompt):
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4",
-            messages=[{
-                "role": "system", "content": "You are a knowledgeable support assistant for Wallingford Financial."
-            }, {
-                "role": "user", "content": prompt
-            }]
+            messages=[
+                {"role": "system", "content": "You are a knowledgeable support assistant for Wallingford Financial."},
+                {"role": "user", "content": prompt}
+            ]
         )
         return response['choices'][0]['message']['content']
     except Exception as e:
@@ -95,38 +111,42 @@ def chat():
     if not user_input:
         return jsonify({"error": "Message is required"}), 400
 
-    # Check if the user input matches any keyword for predefined responses
+    # Fetch dynamic settings and update keyword responses
+    settings = fetch_chatbox_settings()
+    if "error" in settings:
+        return jsonify({"error": settings["error"]}), 500
+    update_keyword_responses(settings)
+
+    # Check if the user input matches any predefined keywords
     for keyword, response in KEYWORD_RESPONSES.items():
-        if keyword.lower() in user_input.lower():  # Case-insensitive match
+        if keyword.lower() in user_input.lower():
             return jsonify({"response": response})
 
-    # Fetch the selected pages dynamically from the API if no keyword matched
+    # Fetch selected pages if no keyword matched
     selected_pages = get_selected_pages()
-
     if "error" in selected_pages:
         return jsonify({"error": selected_pages["error"]}), 500
 
-    # Fetch website content from selected pages
+    # Fetch content from selected pages
     content_from_pages = {}
     for page_name, page_url in selected_pages.items():
         json_content = fetch_website_content(page_url)
-        
-        if "error" in json.loads(json_content):
-            return jsonify({"error": json.loads(json_content)["error"]}), 500
+        content = json.loads(json_content)
 
-        # Store content from each page
-        content_from_pages[page_name] = json.loads(json_content)
-    
-    # Convert content into a single JSON string (flattened if necessary)
-    json_content = json.dumps(content_from_pages)
+        if "error" in content:
+            return jsonify({"error": content["error"]}), 500
 
-    # Create a refined prompt using user input and fetched JSON content
-    prompt = generate_prompt(user_input, json_content)
+        content_from_pages[page_name] = content
 
-    # Ask GPT for a response
+    # Combine content into JSON string
+    combined_content = json.dumps(content_from_pages)
+
+    # Create a refined prompt and get GPT response
+    prompt = generate_prompt(user_input, combined_content)
     response = ask_chatgpt(prompt)
     return jsonify({"response": response})
 
+# Flask route for feedback
 @app.route('/feedback', methods=['POST'])
 def feedback():
     user_feedback = request.json.get("feedback")
@@ -138,19 +158,17 @@ def feedback():
     if user_feedback == "thumbs_up":
         return jsonify({"response": "Thank you for your feedback! Glad you liked it!"})
 
-    elif user_feedback == "thumbs_down":
+    if user_feedback == "thumbs_down":
         refined_response = refine_response(user_response)
-        return jsonify({"response": "Thank you for your feedback. Here's a refined response:", "response": refined_response})
+        return jsonify({"response": "Thank you for your feedback. Here's a refined response:", "refined_response": refined_response})
 
-    else:
-        return jsonify({"error": "Invalid feedback value. Please use 'thumbs_up' or 'thumbs_down'."}), 400
+    return jsonify({"error": "Invalid feedback value. Please use 'thumbs_up' or 'thumbs_down'."}), 400
 
 # Function to refine the response
 def refine_response(original_response):
     try:
         prompt = f"Refine the following response to make it more clear and helpful: {original_response}"
-        refined_response = ask_chatgpt(prompt)
-        return refined_response
+        return ask_chatgpt(prompt)
     except Exception as e:
         return f"Error refining response: {str(e)}"
 
