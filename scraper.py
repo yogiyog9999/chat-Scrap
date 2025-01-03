@@ -69,19 +69,26 @@ def fetch_website_content(url):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
+
     try:
         response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
+        response.raise_for_status()  # This will raise an exception for 4xx/5xx status codes
 
-        # Extract headers and paragraphs
-        content = {
-            "h1": [header.get_text(strip=True) for header in soup.find_all('h1')],
-            "h2": [header.get_text(strip=True) for header in soup.find_all('h2')],
-            "h3": [header.get_text(strip=True) for header in soup.find_all('h3')],
-            "p": [para.get_text(strip=True) for para in soup.find_all('p')]
-        }
-        return json.dumps(content)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            content = {
+                "h1": [header.get_text(strip=True) for header in soup.find_all('h1')],
+                "h2": [header.get_text(strip=True) for header in soup.find_all('h2')],
+                "h3": [header.get_text(strip=True) for header in soup.find_all('h3')],
+                "p": [para.get_text(strip=True) for para in soup.find_all('p')]
+            }
+            return json.dumps(content)
+
+        elif response.status_code == 503:
+            return json.dumps({"error": "Service Unavailable: Server is temporarily down"})
+        else:
+            return json.dumps({"error": f"Unexpected HTTP status code: {response.status_code}"})
+
     except requests.RequestException as e:
         return json.dumps({"error": f"Error fetching content: {str(e)}"})
 
