@@ -91,11 +91,29 @@ def fetch_website_content(url):
         return json.dumps({"error": f"Error fetching content: {str(e)}"})
 # Function to generate a refined prompt using JSON content
 def generate_prompt(user_input, json_content):
-    return (
-        f"Here is some content from our website (structured in JSON format):\n{json_content}\n\n"
-        f"User query: {user_input}\n\n"
-        "Please respond as a knowledgeable support assistant for Wallingford Financial, based on the above content."
+    # If content was not found, use a more generic response
+    no_content_found_response = (
+        "It seems like I couldn't find the specific information you're looking for. "
+        "As a knowledgeable support assistant for Wallingford Financial, I can still help you with your query, "
+        "or you can visit our contact page for more details."
     )
+    
+    # Check if the content from the website has the specific information requested by the user
+    if "error" in json_content or not json_content:
+        return (
+            f"User query: {user_input}\n\n"
+            f"{no_content_found_response}\n\n"
+            "Please respond as a friendly support assistant for Wallingford Financial, offering assistance where possible."
+        )
+    else:
+        # If content is available, include it and ask the assistant to respond based on it
+        return (
+            f"Here is some content from our website (structured in JSON format):\n{json_content}\n\n"
+            f"User query: {user_input}\n\n"
+            "Please respond as a friendly, knowledgeable support assistant for Wallingford Financial, "
+            "making sure to reference the content above to help with the user's query."
+        )
+
 
 # Function to interact with ChatGPT
 def ask_chatgpt(prompt):
