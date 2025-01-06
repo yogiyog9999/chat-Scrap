@@ -111,7 +111,7 @@ def generate_prompt(user_input, json_content):
             f"Here is some content from our website (structured in JSON format):\n{json_content}\n\n"
             f"User query: {user_input}\n\n"
             "Please respond as a friendly, knowledgeable support assistant for Wallingford Financial, "
-            "making sure to reference the content above to help with the user's query."
+            "making sure to reference the content above to help with the user's query and responce under 150 characters."
         )
 
 
@@ -121,7 +121,7 @@ def ask_chatgpt(prompt):
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a knowledgeable support assistant for Wallingford Financial."},
+                {"role": "system", "content": "You are a friendly and concise assistant. Respond like a human in casual chat, with short sentences, and keep it under 150 characters."},
                 {"role": "user", "content": prompt}
             ]
         )
