@@ -13,7 +13,6 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Flask app setup
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Required for session handling
 CORS(app)  # Enable CORS for all routes
 
 # Predefined responses for specific keywords
@@ -27,9 +26,6 @@ KEYWORD_RESPONSES = {
     "phone": "Our contact number is +123456789.",
     "call": "Please feel free to give us a call at +123456789."
 }
-
-# User state tracking
-user_states = {}
 
 # Function to fetch chatbox settings from API
 def fetch_chatbox_settings():
@@ -93,7 +89,6 @@ def fetch_website_content(url):
         return json.dumps({"error": f"HTTP error occurred: {str(http_err)}"})
     except requests.RequestException as e:
         return json.dumps({"error": f"Error fetching content: {str(e)}"})
-
 # Function to generate a refined prompt using JSON content
 def generate_prompt(user_input, json_content):
     # If content was not found, use a more generic response
@@ -134,51 +129,48 @@ def ask_chatgpt(prompt):
     except Exception as e:
         return f"Error communicating with ChatGPT: {str(e)}"
 
-# User state tracking
-user_states = {}
-
+# Flask route for chatbot
 @app.route('/chat', methods=['POST'])
 def chat():
-    user_id = request.json.get("user_id")  # Assume user_id is sent with each request
-    message = request.json.get("message")
+    user_input = request.json.get("message")
+    if not user_input:
+        return jsonify({"error": "Message is required"}), 400
 
-    if not user_id or not message:
-        return jsonify({"error": "User ID and message are required"}), 400
+    # Fetch dynamic settings and update keyword responses
+    settings = fetch_chatbox_settings()
+    if "error" in settings:
+        return jsonify({"error": settings["error"]}), 500
+    update_keyword_responses(settings)
 
-    # Initialize user state if not already done
-    if user_id not in user_states:
-        user_states[user_id] = {"name": None, "email": None}
+    # Check if the user input matches any predefined keywords
+    for keyword, response in KEYWORD_RESPONSES.items():
+        if keyword.lower() in user_input.lower():
+            return jsonify({"response": response})
 
-    # Get the user's state
-    user_state = user_states[user_id]
+    # Fetch selected pages if no keyword matched
+    selected_pages = get_selected_pages()
+    if "error" in selected_pages:
+        return jsonify({"error": selected_pages["error"]}), 500
 
-    # Prompt for name if not provided
-    if user_state["name"] is None:
-        user_state["name"] = message
-        return jsonify({"response": "Thank you! Please provide your email to continue."})
+    # Fetch content from selected pages
+    content_from_pages = {}
+    for page_name, page_url in selected_pages.items():
+        json_content = fetch_website_content(page_url)
+        content = json.loads(json_content)
 
-    # Prompt for email if not provided
-    if user_state["email"] is None:
-        user_state["email"] = message
-        return jsonify({"response": f"Thanks, {user_state['name']}! How can I assist you today?"})
+        if "error" in content:
+            return jsonify({"error": content["error"]}), 500
 
-    # Proceed with chat functionality
-    response = handle_chat(message)
+        content_from_pages[page_name] = content
+
+    # Combine content into JSON string
+    combined_content = json.dumps(content_from_pages)
+
+    # Create a refined prompt and get GPT response
+    prompt = generate_prompt(user_input, combined_content)
+    response = ask_chatgpt(prompt)
     return jsonify({"response": response})
 
-def handle_chat(user_input):
-    # Example of interacting with OpenAI or handling chat logic
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": user_input}
-            ]
-        )
-        return response['choices'][0]['message']['content']
-    except Exception as e:
-        return f"Error communicating with ChatGPT: {str(e)}"
 # Flask route for feedback
 @app.route('/feedback', methods=['POST'])
 def feedback():
