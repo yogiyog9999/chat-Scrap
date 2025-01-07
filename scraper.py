@@ -25,6 +25,7 @@ KEYWORD_RESPONSES = {
     "email": "You can reach us at support@wallingford.com.",
     "phone": "Our contact number is +123456789.",
     "call": "Please feel free to give us a call at +123456789."
+    "something else": "Hey! What can I do for you?"
 }
 
 # Function to fetch chatbox settings from API
@@ -185,7 +186,7 @@ def feedback():
 
     if user_feedback == "thumbs_down":
         refined_response = refine_response(user_response)
-        return jsonify({"response": "Thank you for your feedback. Here's a refined response:", "refined_response": refined_response})
+        return jsonify({"response": refined_response})
 
     return jsonify({"error": "Invalid feedback value. Please use 'thumbs_up' or 'thumbs_down'."}), 400
 
