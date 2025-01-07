@@ -24,8 +24,8 @@ KEYWORD_RESPONSES = {
     "contact": "You can contact us via email at support@wallingford.com or call us at +123456789.",
     "email": "You can reach us at support@wallingford.com.",
     "phone": "Our contact number is +123456789.",
-    "call": "Please feel free to give us a call at +123456789."
-    "something": "Hey! What can I do for you?"
+    "call": "Please feel free to give us a call at +123456789.",
+    "something else": "Hey! What can I do for you?"
 }
 
 # Function to fetch chatbox settings from API
