@@ -41,8 +41,6 @@ KEYWORD_RESPONSES = {
     "ask": "What can I help you with? Reach out to us at support@wallingford.com or (206) 241-2634."
 }
 
-}
-
 # Function to fetch chatbox settings from API
 def fetch_chatbox_settings():
     try:
