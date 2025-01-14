@@ -72,23 +72,23 @@ def get_selected_pages():
 # Function to fetch specific content from a URL
 def fetch_website_content(url):
     try:
-        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-        response.raise_for_status()  # Raise an HTTPError for bad responses
+        response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Extract headers and paragraphs
+        # Extract headers (h1 to h6) and paragraphs (p)
         content = {
             "h1": [header.get_text(strip=True) for header in soup.find_all('h1')],
             "h2": [header.get_text(strip=True) for header in soup.find_all('h2')],
             "h3": [header.get_text(strip=True) for header in soup.find_all('h3')],
+            "h4": [header.get_text(strip=True) for header in soup.find_all('h4')],
+            "h5": [header.get_text(strip=True) for header in soup.find_all('h5')],
+            "h6": [header.get_text(strip=True) for header in soup.find_all('h6')],
             "p": [para.get_text(strip=True) for para in soup.find_all('p')]
         }
+        
+        # Convert content to JSON format
         return json.dumps(content)
-    except requests.exceptions.HTTPError as http_err:
-        if response.status_code == 403:
-            return json.dumps({"error": "Access denied. Please check the URL permissions."})
-        return json.dumps({"error": f"HTTP error occurred: {str(http_err)}"})
-    except requests.RequestException as e:
+    except Exception as e:
         return json.dumps({"error": f"Error fetching content: {str(e)}"})
 # Function to generate a refined prompt using JSON content
 def generate_prompt(user_input, json_content):
