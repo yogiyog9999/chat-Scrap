@@ -72,31 +72,8 @@ def get_selected_pages():
 # Function to fetch specific content from a URL
 def fetch_website_content(url):
     try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Connection': 'keep-alive',
-            'Referer': url,
-            'Origin': 'https://wallingford.devstage24x7.com'
-        }
-        
-        # Make sure you are targeting the right endpoint, possibly admin-ajax.php
-        if "wp-json" in url:
-            response = requests.get(url, headers=headers)
-        else:
-            # Fallback to scraping if you're not calling an API
-            response = requests.get(url, headers=headers)
-        
-        response.raise_for_status()
-
-        # Handle 403 errors, which could be due to permissions or rate-limiting
-        if response.status_code == 403:
-            print(response.text)  # Log the response text for debugging
-            return json.dumps({"error": "Access denied. Please check the URL permissionsfgfg."})
-
-        # Parse the content if the request was successful
+        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+        response.raise_for_status()  # Raise an HTTPError for bad responses
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # Extract headers and paragraphs
@@ -106,14 +83,11 @@ def fetch_website_content(url):
             "h3": [header.get_text(strip=True) for header in soup.find_all('h3')],
             "p": [para.get_text(strip=True) for para in soup.find_all('p')]
         }
-
         return json.dumps(content)
-
     except requests.exceptions.HTTPError as http_err:
         if response.status_code == 403:
-            return json.dumps({"error": "Access denied. Please check the URL permissions54545."})
+            return json.dumps({"error": "Access denied. Please check the URL permissions."})
         return json.dumps({"error": f"HTTP error occurred: {str(http_err)}"})
-    
     except requests.RequestException as e:
         return json.dumps({"error": f"Error fetching content: {str(e)}"})
 # Function to generate a refined prompt using JSON content
