@@ -17,7 +17,6 @@ CORS(app)  # Enable CORS for all routes
 
 # Predefined responses for specific keywords
 KEYWORD_RESPONSES = {
- {
     "hi": "Hello! How can I assist you today?",
     "hello": "Hi there! How can I help you?",
     "hey": "Hey! What can I do for you?",
