@@ -35,9 +35,11 @@ def fetch_chatbox_settings():
         response = requests.get(api_url)
         
         if response.status_code == 200:
-            return response.json()
+            return response.json()  # Successfully retrieved settings
+        elif response.status_code == 202:
+            return {"error": "Request accepted for processing. Please check back later."}
         else:
-            return {"error": f"Failed to fetch chatbox settings: {response.status_code}"}
+            return {"error": f"Failed to fetch chatbox settings: {response.status_code} - {response.text}"}
     except Exception as e:
         return {"error": f"Error fetching chatbox settings: {str(e)}"}
 
