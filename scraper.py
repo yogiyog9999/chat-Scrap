@@ -17,15 +17,31 @@ CORS(app)  # Enable CORS for all routes
 
 # Predefined responses for specific keywords
 KEYWORD_RESPONSES = {
+ {
     "hi": "Hello! How can I assist you today?",
     "hello": "Hi there! How can I help you?",
     "hey": "Hey! What can I do for you?",
     "address": "Our office address is 123 Wallingford St, Wallingford, USA.",
-    "contact": "You can contact us via email at support@wallingford.com or call us at +123456789.",
+    "contact": "You can contact us via email at support@wallingford.com or call us at (206) 241-2634.",
     "email": "You can reach us at support@wallingford.com.",
-    "phone": "Our contact number is +123456789.",
-    "call": "Please feel free to give us a call at +123456789.",
-    "something else": "Hey! What can I do for you?"
+    "phone": "Our contact number is (206) 241-2634.",
+    "call": "Please feel free to give us a call at (206) 241-2634.",
+    "connect": "You can connect with us via email at support@wallingford.com or call (206) 241-2634.",
+    "contact us": "Feel free to reach out to us through email at support@wallingford.com or call us at (206) 241-2634.",
+    "reach out": "To reach us, you can send an email to support@wallingford.com or call (206) 241-2634.",
+    "get in touch": "You can get in touch with us at support@wallingford.com or via phone at (206) 241-2634.",
+    "support": "Our support team is available at support@wallingford.com or by calling (206) 241-2634.",
+    "help": "How can we assist you? Contact us at support@wallingford.com or (206) 241-2634.",
+    "how to reach": "You can reach us at support@wallingford.com or give us a call at (206) 241-2634.",
+    "contact details": "Here are our contact details: Email - support@wallingford.com, Phone - (206) 241-2634.",
+    "message us": "Feel free to message us at support@wallingford.com or call (206) 241-2634.",
+    "talk to us": "To talk to us, email support@wallingford.com or call (206) 241-2634.",
+    "speak to us": "You can speak to our team by emailing support@wallingford.com or calling (206) 241-2634.",
+    "get in contact": "To get in contact, you can email support@wallingford.com or call us at (206) 241-2634.",
+    "send us a message": "Send us a message at support@wallingford.com or reach us at (206) 241-2634.",
+    "ask": "What can I help you with? Reach out to us at support@wallingford.com or (206) 241-2634."
+}
+
 }
 
 # Function to fetch chatbox settings from API
