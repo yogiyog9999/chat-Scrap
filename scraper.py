@@ -35,11 +35,9 @@ def fetch_chatbox_settings():
         response = requests.get(api_url)
         
         if response.status_code == 200:
-            return response.json()  # Successfully retrieved settings
-        elif response.status_code == 202:
-            return {"error": "Request accepted for processing. Please check back later."}
+            return response.json()
         else:
-            return {"error": f"Failed to fetch chatbox settings: {response.status_code} - {response.text}"}
+            return {"error": f"Failed to fetch chatbox settings: {response.status_code}"}
     except Exception as e:
         return {"error": f"Error fetching chatbox settings: {str(e)}"}
 
@@ -74,23 +72,23 @@ def get_selected_pages():
 # Function to fetch specific content from a URL
 def fetch_website_content(url):
     try:
-        response = requests.get(url)
+        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+        response.raise_for_status()  # Raise an HTTPError for bad responses
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Extract headers (h1 to h6) and paragraphs (p)
+        # Extract headers and paragraphs
         content = {
             "h1": [header.get_text(strip=True) for header in soup.find_all('h1')],
             "h2": [header.get_text(strip=True) for header in soup.find_all('h2')],
             "h3": [header.get_text(strip=True) for header in soup.find_all('h3')],
-            "h4": [header.get_text(strip=True) for header in soup.find_all('h4')],
-            "h5": [header.get_text(strip=True) for header in soup.find_all('h5')],
-            "h6": [header.get_text(strip=True) for header in soup.find_all('h6')],
             "p": [para.get_text(strip=True) for para in soup.find_all('p')]
         }
-        
-        # Convert content to JSON format
         return json.dumps(content)
-    except Exception as e:
+    except requests.exceptions.HTTPError as http_err:
+        if response.status_code == 403:
+            return json.dumps({"error": "Access denied. Please check the URL permissions."})
+        return json.dumps({"error": f"HTTP error occurred: {str(http_err)}"})
+    except requests.RequestException as e:
         return json.dumps({"error": f"Error fetching content: {str(e)}"})
 # Function to generate a refined prompt using JSON content
 def generate_prompt(user_input, json_content):
