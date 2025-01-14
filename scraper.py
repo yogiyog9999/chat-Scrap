@@ -13,7 +13,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Flask app setup
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://wallingford.devstage24x7.com"}})
+CORS(app)
 # Predefined responses for specific keywords
 KEYWORD_RESPONSES = {
     "hi": "Hello! How can I assist you today?",
