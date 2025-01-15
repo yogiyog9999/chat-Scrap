@@ -37,7 +37,7 @@ def fetch_chatbox_settings():
         if response.status_code == 200:
             return response.json()
         else:
-          # return {"error": f"Failed to fetch chatbox settings: {response.status_code}"}
+           return {"error": f"Failed to fetch chatbox settings: {response.status_code}"}
     except Exception as e:
         return {"error": f"Error fetching chatbox settings: {str(e)}"}
 
@@ -138,11 +138,7 @@ def chat():
         return jsonify({"error": "Message is required"}), 400
 
     # Fetch dynamic settings and update keyword responses
-    settings = fetch_chatbox_settings()
-    if "error" in settings:
-        return jsonify({"error": settings["error"]}), 500
-    update_keyword_responses(settings)
-
+    
     # Check if the user input matches any predefined keywords
     for keyword, response in KEYWORD_RESPONSES.items():
         if keyword.lower() in user_input.lower():
