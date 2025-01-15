@@ -8,3 +8,4 @@ cachetools==5.3.0
 langdetect
 textblob
 googletrans==4.0.0-rc1
+logging
