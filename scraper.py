@@ -1,12 +1,11 @@
 import requests
 
 api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/selected-pages"
-
-def fetch_selected_pages():
-    headers = {
-    'User-Agent': 'Mozilla/5.0 (compatible; RenderAPI/1.0)',
+headers = {
+    'Authorization': 'Bearer 4567890'
 }
-
+def fetch_selected_pages():
+  
     try:
         response = requests.get(api_url, headers=headers)
         response.raise_for_status()  # Raise an error for bad status codes
