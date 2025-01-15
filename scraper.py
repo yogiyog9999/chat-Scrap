@@ -31,7 +31,7 @@ KEYWORD_RESPONSES = {
 # Function to fetch chatbox settings from API
 def fetch_chatbox_settings():
     try:
-        api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/settings"
+        api_url = "http://dev999.devstage24x7.com/wp-json/chatbox/v1/settings"
         response = requests.get(api_url)
         
         if response.status_code == 200:
@@ -57,7 +57,7 @@ def update_keyword_responses(settings):
 
 # Function to fetch selected pages from the API
 def get_selected_pages():
-    api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/selected-pages"
+    api_url = "http://dev999.devstage24x7.com/wp-json/chatbox/v1/selected-pages"
     try:
         response = requests.get(api_url)
         response.raise_for_status()  # Raise an HTTPError for bad responses
