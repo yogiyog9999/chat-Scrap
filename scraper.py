@@ -14,6 +14,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # Flask app setup
 app = Flask(__name__)
 CORS(app)
+
 # Predefined responses for specific keywords
 KEYWORD_RESPONSES = {
     "hi": "Hello! How can I assist you today?",
@@ -62,8 +63,6 @@ def get_selected_pages():
         response.raise_for_status()  # Raise an HTTPError for bad responses
         return response.json()  # Return the JSON content if successful
     except requests.exceptions.HTTPError as http_err:
-        if response.status_code == 403:
-            return {"error": "Access denied. Please check your API permissions."}
         return {"error": f"HTTP error occurred: {str(http_err)}"}
     except requests.RequestException as e:
         return {"error": f"Failed to fetch selected pages: {str(e)}"}
@@ -84,11 +83,10 @@ def fetch_website_content(url):
         }
         return json.dumps(content)
     except requests.exceptions.HTTPError as http_err:
-        if response.status_code == 403:
-            return json.dumps({"error": "Access denied. Please check the URL permissions."})
         return json.dumps({"error": f"HTTP error occurred: {str(http_err)}"})
     except requests.RequestException as e:
         return json.dumps({"error": f"Error fetching content: {str(e)}"})
+
 # Function to generate a refined prompt using JSON content
 def generate_prompt(user_input, json_content):
     # If content was not found, use a more generic response
@@ -111,7 +109,7 @@ def generate_prompt(user_input, json_content):
             f"Here is some content from our website (structured in JSON format):\n{json_content}\n\n"
             f"User query: {user_input}\n\n"
             "Please respond as a friendly, knowledgeable support assistant for Wallingford Financial, "
-            "making sure to reference the content above to help with the user's query and responce under 150 characters."
+            "making sure to reference the content above to help with the user's query and respond under 150 characters."
         )
 
 
