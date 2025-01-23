@@ -162,12 +162,13 @@ def generate_prompt(user_input, json_content):
         )
     else:
         # If content is available, include it and ask the assistant to respond based on it
-        return (
-            f"Here is some content from our website (structured in JSON format):\n{json_content}\n\n"
-            f"User query: {user_input}\n\n"
-            "Please respond as a friendly, knowledgeable support assistant for Wallingford Financial, "
-            "making sure to reference the content above to help with the user's query and responce under 150 characters."
-        )
+       return (
+    f"Here is some content from our website (structured in JSON format):\n{json_content}\n\n"
+    f"User query: {user_input}\n\n"
+    "Please respond as a friendly, knowledgeable support assistant for Wallingford Financial. "
+    "Reference the content above to help with the user's query and keep the response under 150 characters. "
+    "Additionally, ask a relevant follow-up question based on the user's input or the overall conversation flow."
+)
 
 
 # Function to interact with ChatGPT
