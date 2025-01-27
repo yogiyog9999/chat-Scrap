@@ -29,6 +29,7 @@ KEYWORD_RESPONSES = {
     # Contact Information
     "address": "Our office address is 236 SW 171st St, Seattle, WA 98166.",
     "location": "We are located at 236 SW 171st St, Seattle, WA 98166.",
+     "located": "We are located at 236 SW 171st St, Seattle, WA 98166.",
     "contact": "You can contact us via email at info@wallingfordfinancial.com or call us at (206) 241-2634.",
     "connect": "Feel free to reach us at info@wallingfordfinancial.com or call us at (206) 241-2634.",
     "reach": "You can get in touch with us via email at info@wallingfordfinancial.com or phone at (206) 241-2634.",
@@ -166,7 +167,7 @@ def generate_prompt(user_input, json_content):
     f"Here is some content from our website (structured in JSON format):\n{json_content}\n\n"
     f"User query: {user_input}\n\n"
     "Please respond as a friendly, knowledgeable support assistant for Wallingford Financial. "
-    "Reference the content above to help with the user's query and keep the response under 150 characters. "
+    "Reference the content above to help with the user's query and keep the response under 250 characters. "
     "Additionally, ask a relevant follow-up question based on the user's input or the overall conversation flow."
 )
 
