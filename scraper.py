@@ -152,7 +152,7 @@ def generate_prompt(user_input, json_content):
     # If content was not found, use a more generic response
     no_content_found_response = (
         "It seems like I couldn't find the specific information you're looking for. "
-        "As a knowledgeable support assistant for Wallingford Financial, I can still help you with your query, "
+        "As a knowledgeable support assistant for isigmasolutions.com, I can still help you with your query, "
         "or you can visit our contact page for more details."
     )
     
@@ -161,14 +161,14 @@ def generate_prompt(user_input, json_content):
         return (
             f"User query: {user_input}\n\n"
             f"{no_content_found_response}\n\n"
-            "Please respond as a friendly support assistant for Wallingford Financial, offering assistance where possible."
+            "Please respond as a friendly support assistant for isigmasolutions.com, offering assistance where possible."
         )
     else:
         # If content is available, include it and ask the assistant to respond based on it
        return (
     f"Here is some content from our website (structured in JSON format):\n{json_content}\n\n"
     f"User query: {user_input}\n\n"
-    "Please respond as a friendly, knowledgeable support assistant for Wallingford Financial. "
+    "Please respond as a friendly, knowledgeable support assistant for isigmasolutions.com. "
     "Reference the content above to help with the user's query and keep the response under 250 characters. "
     "Additionally, ask a relevant follow-up question based on the user's input or the overall conversation flow."
 )
