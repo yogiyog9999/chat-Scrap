@@ -17,53 +17,47 @@ CORS(app)  # Enable CORS for all routes
 
 # Predefined responses for specific keywords
 KEYWORD_RESPONSES = {
-    # Greetings
+     # Greetings
     "hi": "Hello! How can I assist you today?",
     "hello": "Hi there! How can I help you?",
     "hey": "Hey! What can I do for you?",
     "good morning": "Good morning! How can I assist you?",
     "good afternoon": "Good afternoon! How can I help you?",
     "good evening": "Good evening! How can I assist you?",
-    "how are you": "I'm just a bot, but I'm here to help! How can I assist you?",
+    "how are you": "I'm just a bot, but I'm here to help you! How can I assist you?",
 
     # Contact Information
-    "address": "Our office address is 382 Winston Rd, Grimsby, ON L3M 0H2, Canada.",
-    "location": "We are located at 382 Winston Rd, Grimsby, ON L3M 0H2, Canada.",
-    "located": "We are located at 382 Winston Rd, Grimsby, ON L3M 0H2, Canada.",
-    "contact": "You can contact us via email at contact@isigmasolutions.com or call us at 1-877-974-4744.",
-    "connect": "Feel free to reach us at contact@isigmasolutions.com or call us at 1-877-974-4744.",
-    "reach": "You can get in touch with us via email at contact@isigmasolutions.com or phone at 1-877-974-4744.",
-    "email": "You can reach us at contact@isigmasolutions.com.",
-    "phone": "Our toll-free number is 1-877-974-4744.",
-    "call": "Please feel free to give us a call at 1-877-974-4744.",
-    "mobile": "You can contact us at 1-877-974-4744.",
-    "where are you located": "Our office is located at 382 Winston Rd, Grimsby, ON L3M 0H2, Canada.",
-    "office address": "We are located at 382 Winston Rd, Grimsby, ON L3M 0H2, Canada.",
+    "address": "Our office address is 382 Winston Rd,Grimsby,ON L3M 0H2 Canada.",
+    "location": "We are located at 382 Winston Rd,Grimsby,ON L3M 0H2 Canada.",
+     "located": "We are located at 382 Winston Rd,Grimsby,ON L3M 0H2 Canada.",
+    "contact": "You can contact us via email at info@wallingfordfinancial.com or call us at info@wallingfordfinancial.com",
+    "connect": "Feel free to reach us at info@wallingfordfinancial.com or call us at (206) 241-2634.",
+    "reach": "You can get in touch with us via email at info@wallingfordfinancial.com or phone at (206) 241-2634.",
+    "email": "You can reach us at info@wallingfordfinancial.com",
+    "phone": "Our contact number is (206) 241-2634.",
+    "call": "Please feel free to give us a call at (206) 241-2634.",
+    "mobile": "You can contact us on (206) 241-2634.",
+    "where are you located": "Our office is located at 236 SW 171st St, Seattle, WA 98166.",
+    "office address": "We are located at 236 SW 171st St, Seattle, WA 98166.",
 
-    # Services
-    "services": "We offer a range of digital solutions, including Web Development, WordPress Development, Mobile Apps, SEO, and more. How can we assist you?",
-    "web development": "We provide professional web development services, building dynamic and responsive websites. Learn more at https://isigmasolutions.com/",
-    "wordpress development": "Our WordPress development services help you create custom, scalable WordPress solutions. Learn more at https://isigmasolutions.com/",
-    "resource outsourcing": "We provide skilled professionals for hire to support your development needs. Learn more at https://isigmasolutions.com/",
-    "mobile apps development": "We develop high-quality mobile applications for Android and iOS platforms. Learn more at https://isigmasolutions.com/",
-    "website maintenance": "We offer website maintenance services to ensure your website remains up-to-date and secure. Learn more at https://isigmasolutions.com/",
-    "search engine optimization": "Our SEO services help improve your website's visibility on search engines. Learn more at https://isigmasolutions.com/",
-    "local seo services": "We specialize in local SEO strategies to help businesses attract customers nearby. Learn more at https://isigmasolutions.com/",
-    "voice search optimization": "Our voice search optimization services ensure your content is discoverable via voice assistants. Learn more at https://isigmasolutions.com/",
-    "social media": "We provide social media marketing and management services to grow your online presence. Learn more at https://isigmasolutions.com/",
-    "ui ux designing": "Our UI/UX design services focus on creating engaging and user-friendly interfaces. Learn more at https://isigmasolutions.com/",
-    "pay per click": "We offer PPC advertising services to drive traffic and increase conversions. Learn more at https://isigmasolutions.com/",
-
-    # Common Questions
-    "quote": "For a quote, please contact us at contact@isigmasolutions.com or call 1-877-974-4744.",
-    "pricing": "For pricing details, please reach out to us via email at contact@isigmasolutions.com.",
+    # Services/Assistance
+    "quote": "For a quote, please contact us at info@wallingfordfinancial.com or call (206) 241-2634.",
+    "pricing": "For pricing details, please reach out to us via email at info@wallingfordfinancial.com.",
+    "services": "We offer a range of services including Life Planning, Business Planning, Employee Benefits, and Medical & Medicare Insurance. How can we assist you?",
+    "life planning": "Our Life Planning services include Family Protection, Income Protection, Retirement and Legacy Planning, and College Planning. How can we assist you?",
+    "business planning": "Our Business Planning services focus on helping you attract and retain employees. How can we assist you?",
+    "employee benefits": "We offer Core Employee Benefits to help you provide fantastic benefits to your team. How can we assist you?",
+    "medical insurance": "We provide Medical and Medicare Insurance services to ensure you have the health coverage you need. How can we assist you?",
+    "medicare insurance": "We provide Medical and Medicare Insurance services to ensure you have the health coverage you need. How can we assist you?",
     "help": "Of course! How can I help you today?",
-    "support": "Our support team is here to help. Email us at contact@isigmasolutions.com or call 1-877-974-4744.",
+    "support": "Our support team is here to help. Email us at info@wallingfordfinancial.com or call (206) 241-2634.",
     "assist": "I’m here to assist you! Please let me know how I can help.",
     "information": "What information are you looking for? I'd be happy to help.",
     "details": "Could you specify what details you need? I'll do my best to assist you.",
-    "products": "We offer various digital solutions, including web development, mobile apps, SEO, and more. Could you specify what you're looking for?",
-    "solutions": "We provide tailored digital solutions. Please let me know what you need assistance with.",
+    "products": "We offer various financial services tailored to your needs. Could you specify what you're looking for?",
+    "solutions": "We provide tailored financial solutions. Please let me know what you need assistance with.",
+
+    # Common Questions
     "hours": "Our office hours are 9:00 AM to 5:00 PM, Monday to Friday.",
     "timing": "We’re available from 9:00 AM to 5:00 PM, Monday to Friday.",
     "open": "Our office is open from 9:00 AM to 5:00 PM, Monday to Friday.",
@@ -71,7 +65,11 @@ KEYWORD_RESPONSES = {
     "business hours": "Our business hours are 9:00 AM to 5:00 PM, Monday to Friday.",
     "availability": "We’re available during our business hours, 9:00 AM to 5:00 PM, Monday to Friday.",
     "how can I": "Could you tell me more about what you’re looking for? I’d be happy to assist!",
-    "what do you do": "We offer various digital services including Web Development, SEO, Mobile App Development, and more. How can we assist you?",
+    "what do you do": "We offer various financial services including Life Planning, Business Planning, Employee Benefits, and Medical & Medicare Insurance. How can we assist you?",
+
+    # Testimonials
+    "testimonials": "Our clients have shared positive experiences with us. For example, Teryl H. from Seattle, WA says, 'They are the very best that I have ever seen or heard in the field of financing and future college planning.' [Source: https://wallingford.devstage24x7.com/]",
+    "reviews": "Our clients have shared positive experiences with us. For example, Judy H. from Mukilteo says, 'If you want great personal service, this is where you will find it.' [Source: https://wallingford.devstage24x7.com/]",
 
     # Miscellaneous
     "thank you": "You're welcome! Let me know if there's anything else I can help with.",
@@ -84,11 +82,10 @@ KEYWORD_RESPONSES = {
     "help me": "I’d be happy to help! Could you tell me more about what you need?",
 }
 
-
 # Function to fetch chatbox settings from API
 def fetch_chatbox_settings():
     try:
-        api_url = "https://isigmasolutions.com/wp-json/chatbox/v1/settings"
+        api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/settings"
         response = requests.get(api_url)
         
         if response.status_code == 200:
@@ -114,7 +111,7 @@ def update_keyword_responses(settings):
 
 # Function to fetch selected pages from the API
 def get_selected_pages():
-    api_url = "https://isigmasolutions.com/wp-json/chatbox/v1/selected-pages"
+    api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/selected-pages"
     try:
         response = requests.get(api_url)
         response.raise_for_status()  # Raise an HTTPError for bad responses
@@ -152,7 +149,7 @@ def generate_prompt(user_input, json_content):
     # If content was not found, use a more generic response
     no_content_found_response = (
         "It seems like I couldn't find the specific information you're looking for. "
-        "As a knowledgeable support assistant for isigmasolutions.com, I can still help you with your query, "
+        "As a knowledgeable support assistant for wallingford, I can still help you with your query, "
         "or you can visit our contact page for more details."
     )
     
@@ -161,14 +158,14 @@ def generate_prompt(user_input, json_content):
         return (
             f"User query: {user_input}\n\n"
             f"{no_content_found_response}\n\n"
-            "Please respond as a friendly support assistant for isigmasolutions.com, offering assistance where possible."
+            "Please respond as a friendly support assistant for wallingford, offering assistance where possible."
         )
     else:
         # If content is available, include it and ask the assistant to respond based on it
        return (
     f"Here is some content from our website (structured in JSON format):\n{json_content}\n\n"
     f"User query: {user_input}\n\n"
-    "Please respond as a friendly, knowledgeable support assistant for isigmasolutions.com. "
+    "Please respond as a friendly, knowledgeable support assistant for wallingford"
     "Reference the content above to help with the user's query and keep the response under 250 characters. "
     "Additionally, ask a relevant follow-up question based on the user's input or the overall conversation flow."
 )
