@@ -25,53 +25,7 @@ KEYWORD_RESPONSES = {
     "good afternoon": "Good afternoon! How can I help you?",
     "good evening": "Good evening! How can I assist you?",
     "how are you": "I'm just a bot, but I'm here to help you! How can I assist you?",
-
-    # Contact Information
-    "address": "Our office address is 382 Winston Rd,Grimsby,ON L3M 0H2 Canada.",
-    "location": "We are located at 382 Winston Rd,Grimsby,ON L3M 0H2 Canada.",
-     "located": "We are located at 382 Winston Rd,Grimsby,ON L3M 0H2 Canada.",
-    "contact": "You can contact us via email at info@wallingfordfinancial.com or call us at info@wallingfordfinancial.com",
-    "connect": "Feel free to reach us at info@wallingfordfinancial.com or call us at (206) 241-2634.",
-    "reach": "You can get in touch with us via email at info@wallingfordfinancial.com or phone at (206) 241-2634.",
-    "email": "You can reach us at info@wallingfordfinancial.com",
-    "phone": "Our contact number is (206) 241-2634.",
-    "call": "Please feel free to give us a call at (206) 241-2634.",
-    "mobile": "You can contact us on (206) 241-2634.",
-    "where are you located": "Our office is located at 236 SW 171st St, Seattle, WA 98166.",
-    "office address": "We are located at 236 SW 171st St, Seattle, WA 98166.",
-
-    # Services/Assistance
-    "quote": "For a quote, please contact us at info@wallingfordfinancial.com or call (206) 241-2634.",
-    "pricing": "For pricing details, please reach out to us via email at info@wallingfordfinancial.com.",
-    "services": "We offer a range of services including Life Planning, Business Planning, Employee Benefits, and Medical & Medicare Insurance. How can we assist you?",
-    "life planning": "Our Life Planning services include Family Protection, Income Protection, Retirement and Legacy Planning, and College Planning. How can we assist you?",
-    "business planning": "Our Business Planning services focus on helping you attract and retain employees. How can we assist you?",
-    "employee benefits": "We offer Core Employee Benefits to help you provide fantastic benefits to your team. How can we assist you?",
-    "medical insurance": "We provide Medical and Medicare Insurance services to ensure you have the health coverage you need. How can we assist you?",
-    "medicare insurance": "We provide Medical and Medicare Insurance services to ensure you have the health coverage you need. How can we assist you?",
-    "help": "Of course! How can I help you today?",
-    "support": "Our support team is here to help. Email us at info@wallingfordfinancial.com or call (206) 241-2634.",
-    "assist": "I’m here to assist you! Please let me know how I can help.",
-    "information": "What information are you looking for? I'd be happy to help.",
-    "details": "Could you specify what details you need? I'll do my best to assist you.",
-    "products": "We offer various financial services tailored to your needs. Could you specify what you're looking for?",
-    "solutions": "We provide tailored financial solutions. Please let me know what you need assistance with.",
-
-    # Common Questions
-    "hours": "Our office hours are 9:00 AM to 5:00 PM, Monday to Friday.",
-    "timing": "We’re available from 9:00 AM to 5:00 PM, Monday to Friday.",
-    "open": "Our office is open from 9:00 AM to 5:00 PM, Monday to Friday.",
-    "closed": "We are closed outside of 9:00 AM to 5:00 PM, Monday to Friday.",
-    "business hours": "Our business hours are 9:00 AM to 5:00 PM, Monday to Friday.",
-    "availability": "We’re available during our business hours, 9:00 AM to 5:00 PM, Monday to Friday.",
-    "how can I": "Could you tell me more about what you’re looking for? I’d be happy to assist!",
-    "what do you do": "We offer various financial services including Life Planning, Business Planning, Employee Benefits, and Medical & Medicare Insurance. How can we assist you?",
-
-    # Testimonials
-    "testimonials": "Our clients have shared positive experiences with us. For example, Teryl H. from Seattle, WA says, 'They are the very best that I have ever seen or heard in the field of financing and future college planning.' [Source: https://wallingford.devstage24x7.com/]",
-    "reviews": "Our clients have shared positive experiences with us. For example, Judy H. from Mukilteo says, 'If you want great personal service, this is where you will find it.' [Source: https://wallingford.devstage24x7.com/]",
-
-    # Miscellaneous
+     # Miscellaneous
     "thank you": "You're welcome! Let me know if there's anything else I can help with.",
     "thanks": "Glad I could help! Let me know if there’s more I can assist you with.",
     "bye": "Goodbye! Have a great day!",
