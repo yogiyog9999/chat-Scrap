@@ -54,15 +54,7 @@ def update_keyword_responses(settings):
     global KEYWORD_RESPONSES
     if "chatbox_address" in settings:
         KEYWORD_RESPONSES["addressdd"] = f"Our office address is {settings['chatbox_address']}."
-    if "chatbox_contact" in settings:
-        KEYWORD_RESPONSES["contactrr"] = f"You can contact us via {settings['chatbox_contact']}."
-    if "chatbox_email" in settings:
-        KEYWORD_RESPONSES["emailrr"] = f"You can reach us at {settings['chatbox_email']}."
-    if "chatbox_hours" in settings:
-        KEYWORD_RESPONSES["callrr"] = f"Our operational hours are {settings['chatbox_hours']}."
-    if "chatbox_services" in settings:
-        KEYWORD_RESPONSES["servicesrr"] = f"We offer the following services: {settings['chatbox_services']}."
-
+    
 # Function to fetch selected pages from the API
 def get_selected_pages():
     api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/selected-pages"
