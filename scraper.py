@@ -166,7 +166,7 @@ def generate_prompt(user_input, json_content):
     f"Here is some content from our website (structured in JSON format):\n{json_content}\n\n"
     f"User query: {user_input}\n\n"
     "Please respond as a friendly, knowledgeable support assistant for wallingford"
-    "Reference the content above to help with the user's query and keep the response under 250 characters. "
+    "Reference the content above to help with the user's query and keep the response under 500 characters. "
     "Additionally, ask a relevant follow-up question based on the user's input or the overall conversation flow."
 )
 
