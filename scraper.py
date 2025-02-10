@@ -14,108 +14,45 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # Flask app setup
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
-
 # Predefined responses for specific keywords
 KEYWORD_RESPONSES = {
-     # Greetings
     "hi": "Hello! How can I assist you today?",
     "hello": "Hi there! How can I help you?",
     "hey": "Hey! What can I do for you?",
-    "good morning": "Good morning! How can I assist you?",
-    "good afternoon": "Good afternoon! How can I help you?",
-    "good evening": "Good evening! How can I assist you?",
-    "how are you": "I'm just a bot, but I'm here to help you! How can I assist you?",
-     # Miscellaneous
     "thank you": "You're welcome! Let me know if there's anything else I can help with.",
-    "thanks": "Glad I could help! Let me know if there’s more I can assist you with.",
-    "bye": "Goodbye! Have a great day!",
-    "goodbye": "Take care! Feel free to reach out anytime.",
-    "see you": "See you! Have a wonderful day!",
-    "something else": "Sure! What else can I assist you with?",
-    "not sure": "No problem! Let me know how I can assist you.",
-    "help me": "I’d be happy to help! Could you tell me more about what you need?",
+    "bye": "Goodbye! Have a great day!"
 }
 
 # Function to fetch chatbox settings from API
 def fetch_chatbox_settings():
+    api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/settings"
     try:
-        api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/settings"
         response = requests.get(api_url)
-        
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return {"error": f"Failed to fetch chatbox settings: {response.status_code}"}
-    except Exception as e:
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
         return {"error": f"Error fetching chatbox settings: {str(e)}"}
 
-# Update the predefined responses with dynamic values
-def update_keyword_responses(settings):
-    global KEYWORD_RESPONSES
-    if "chatbox_address" in settings:
-        KEYWORD_RESPONSES["addressdd"] = f"Our office address is {settings['chatbox_address']}."
-    
-# Function to fetch selected pages from the API
-def get_selected_pages():
-    api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/selected-pages"
+# Function to fetch stored page content from the API
+def fetch_stored_page_content():
+    api_url = "https://wallingford.devstage24x7.com/wp-json/chatbot/v1/pages?jkjk"
     try:
         response = requests.get(api_url)
-        response.raise_for_status()  # Raise an HTTPError for bad responses
-        return response.json()  # Return the JSON content if successful
-    except requests.exceptions.HTTPError as http_err:
-        if response.status_code == 403:
-            return {"error": "Access denied. Please check your API permissions."}
-        return {"error": f"HTTP error occurred: {str(http_err)}"}
-    except requests.RequestException as e:
-        return {"error": f"Failed to fetch selected pages: {str(e)}"}
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Error fetching stored pages: {str(e)}"}
 
-# Function to fetch specific content from a URL
-def fetch_website_content(url):
-    try:
-        response = requests.get(url)
-        response.raise_for_status()  # Raise an HTTPError for bad responses
-        soup = BeautifulSoup(response.text, 'html.parser')
-
-        # Extract headers and paragraphs
-        content = {
-            "h1": [header.get_text(strip=True) for header in soup.find_all('h1')],
-            "h2": [header.get_text(strip=True) for header in soup.find_all('h2')],
-            "h3": [header.get_text(strip=True) for header in soup.find_all('h3')],
-            "p": [para.get_text(strip=True) for para in soup.find_all('p')]
-        }
-        return json.dumps(content)
-    except requests.exceptions.HTTPError as http_err:
-        if response.status_code == 403:
-            return json.dumps({"error": "Access denied. Please check the URL permissions."})
-        return json.dumps({"error": f"HTTP error occurred: {str(http_err)}"})
-    except requests.RequestException as e:
-        return json.dumps({"error": f"Error fetching content: {str(e)}"})
 # Function to generate a refined prompt using JSON content
 def generate_prompt(user_input, json_content):
-    # If content was not found, use a more generic response
-    no_content_found_response = (
-        "It seems like I couldn't find the specific information you're looking for. "
-        "As a knowledgeable support assistant for wallingford, I can still help you with your query, "
-        "or you can visit our contact page for more details."
-    )
-    
-    # Check if the content from the website has the specific information requested by the user
     if "error" in json_content or not json_content:
-        return (
-            f"User query: {user_input}\n\n"
-            f"{no_content_found_response}\n\n"
-            "Please respond as a friendly support assistant for wallingford, offering assistance where possible."
-        )
-    else:
-        # If content is available, include it and ask the assistant to respond based on it
-       return (
-    f"Here is some content from our website (structured in JSON format):\n{json_content}\n\n"
-    f"User query: {user_input}\n\n"
-    "Please respond as a friendly, knowledgeable support assistant for wallingford"
-    "Reference the content above to help with the user's query and keep the response under 250 characters. "
-    "Additionally, ask a relevant follow-up question based on the user's input or the overall conversation flow."
-)
-
+        return f"User query: {user_input}\n\nIt seems I couldn't find the specific information you're looking for. Please visit our contact page for more details."
+    
+    return (
+        f"Here is some content from our website (structured in JSON format):\n{json.dumps(json_content, indent=2)}\n\n"
+        f"User query: {user_input}\n\n"
+        "Please respond as a friendly, knowledgeable assistant for Wallingford."
+    )
 
 # Function to interact with ChatGPT
 def ask_chatgpt(prompt):
@@ -123,7 +60,7 @@ def ask_chatgpt(prompt):
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a friendly and concise assistant. Respond like a human in casual chat."},
+                {"role": "system", "content": "You are a friendly and concise assistant."},
                 {"role": "user", "content": prompt}
             ]
         )
@@ -138,41 +75,26 @@ def chat():
     if not user_input:
         return jsonify({"error": "Message is required"}), 400
 
-    # Fetch dynamic settings and update keyword responses
+    # Fetch dynamic settings
     settings = fetch_chatbox_settings()
     if "error" in settings:
         return jsonify({"error": settings["error"]}), 500
-    update_keyword_responses(settings)
 
-    # Check if the user input matches any predefined keywords
+    # Check if user input matches predefined responses
     for keyword, response in KEYWORD_RESPONSES.items():
         if keyword.lower() in user_input.lower():
             return jsonify({"response": response})
 
-    # Fetch selected pages if no keyword matched
-    selected_pages = get_selected_pages()
-    if "error" in selected_pages:
-        return jsonify({"error": selected_pages["error"]}), 500
+    # Fetch stored page content
+    stored_pages = fetch_stored_page_content()
+    if "error" in stored_pages:
+        return jsonify({"error": stored_pages["error"]}), 500
 
-    # Fetch content from selected pages
-    content_from_pages = {}
-    for page_name, page_url in selected_pages.items():
-        json_content = fetch_website_content(page_url)
-        content = json.loads(json_content)
-
-        if "error" in content:
-            return jsonify({"error": content["error"]}), 500
-
-        content_from_pages[page_name] = content
-
-    # Combine content into JSON string
-    combined_content = json.dumps(content_from_pages)
-
-    # Create a refined prompt and get GPT response
-    prompt = generate_prompt(user_input, combined_content)
+    # Generate prompt and get response from ChatGPT
+    prompt = generate_prompt(user_input, stored_pages)
     response = ask_chatgpt(prompt)
     return jsonify({"response": response})
-
+     
 # Flask route for feedback
 @app.route('/feedback', methods=['POST'])
 def feedback():
