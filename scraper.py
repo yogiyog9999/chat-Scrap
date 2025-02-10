@@ -34,7 +34,7 @@ def fetch_chatbox_settings():
         return {"error": f"Error fetching chatbox settings: {str(e)}"}
 
 PROMPT = PROMPT = """
-You are a friendly and engaging support agent for Wallingford Financial. Your goal is to help users with their issues while keeping the conversation light, empathetic, and natural—almost like a real human agent.
+You are a friendly and engaging support agent for Wallingford Financial. Your goal is to help users with their issues while keeping the conversation light, empathetic, and natural—almost like a real human agent and response below 300 characters.
 
 💬 How to respond:
 
