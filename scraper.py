@@ -2,8 +2,6 @@ import os
 import openai
 from flask import Flask, request, jsonify
 import requests
-from bs4 import BeautifulSoup
-import json
 from dotenv import load_dotenv
 from flask_cors import CORS
 from fuzzywuzzy import process
@@ -41,43 +39,45 @@ You are a friendly and helpful customer support agent for Wallingford Financial.
 def fetch_chatbox_settings():
     api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/settings"
     try:
-        response = requests.get(api_url)
+        response = requests.get(api_url, timeout=5)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        return {"error": f"Error fetching chatbox settings: {str(e)}"}
+        print(f"Error fetching chatbox settings: {e}")
+        return {"error": "Failed to load chatbox settings"}
 
 # Fetch stored page content from API
 def fetch_stored_page_content():
     api_url = "https://wallingford.devstage24x7.com/wp-json/chatbot/v1/pages"
     try:
-        response = requests.get(api_url)
+        response = requests.get(api_url, timeout=5)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        return {"error": f"Error fetching stored pages: {str(e)}"}
+        print(f"Error fetching stored pages: {e}")
+        return {"error": "Failed to load stored page content"}
 
 # Extract relevant structured data
 def extract_relevant_data(json_content):
-    structured_data = {
+    return {
         "headings": json_content.get("h1", []) + json_content.get("h2", []) + json_content.get("h3", []),
         "paragraphs": json_content.get("p", []),
         "faqs": json_content.get("faq", []),
-        "lists": json_content.get("lists", []),
         "contact_info": json_content.get("contact_info", {})
     }
-    return structured_data
 
 # Generate a refined prompt using structured JSON content
 def generate_prompt(user_input, json_content):
     if "error" in json_content or not json_content:
-        return f"User query: {user_input}\n\nIt seems I couldn't find the specific information you're looking for. Please visit our contact page for more details."
-    
+        return f"User query: {user_input}\n\nI couldn't find specific information. Please check our contact page."
+
     structured_data = extract_relevant_data(json_content)
+    relevant_info = structured_data.get("paragraphs", [])[:2]  # Get first 2 paragraphs only
+
     return (
-        f"Here is structured content from our website:\n{json.dumps(structured_data, indent=2)}\n\n"
+        f"Relevant information from website:\n{relevant_info}\n\n"
         f"User query: {user_input}\n\n"
-        "Please respond as a friendly, knowledgeable assistant for Wallingford."
+        "Respond as a friendly, knowledgeable assistant for Wallingford."
     )
 
 # Interact with ChatGPT
@@ -90,12 +90,13 @@ def ask_chatgpt(user_message, conversation_history=[]):
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=messages,
-            max_tokens=150,
+            max_tokens=200,
             temperature=0.7
         )
         return response['choices'][0]['message']['content']
     except Exception as e:
-        return f"Error communicating with ChatGPT: {str(e)}"
+        print(f"Error with OpenAI API: {e}")
+        return "Sorry, I'm having trouble generating a response."
 
 # Find the best keyword match using fuzzy logic
 def find_best_match(user_input, keywords):
@@ -108,11 +109,6 @@ def chat():
     user_input = request.json.get("message")
     if not user_input:
         return jsonify({"error": "Message is required"}), 400
-
-    # Fetch dynamic settings
-    settings = fetch_chatbox_settings()
-    if "error" in settings:
-        return jsonify({"error": settings["error"]}), 500
 
     # Handle predefined responses with fuzzy matching
     best_match = find_best_match(user_input, KEYWORD_RESPONSES.keys())
@@ -159,4 +155,5 @@ def refine_response(original_response):
 
 # Run Flask app
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+        app.run(host='0.0.0.0', port=5000)
+        app.run(debug=True)
