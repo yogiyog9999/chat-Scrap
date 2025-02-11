@@ -16,7 +16,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # WordPress API Endpoint
-WORDPRESS_API = "https://yourwebsite.com/wp-json/chatbot/v1/pages"
+WORDPRESS_API = "https://wallingford.devstage24x7.com/wp-json/chatbot/v1/pages"
 
 
 def fetch_page_content():
