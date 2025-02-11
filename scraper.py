@@ -97,7 +97,12 @@ def chat():
     if not user_input:
         return jsonify({"error": "Message is required"}), 400
 
-    # Check predefined responses
+    # Fetch dynamic settings
+    settings = fetch_chatbox_settings()
+    if "error" in settings:
+        return jsonify({"error": settings["error"]}), 500
+
+    # Check for predefined responses
     for keyword, response in KEYWORD_RESPONSES.items():
         if keyword.lower() in user_input.lower():
             update_chat_history("user", user_input)
@@ -109,22 +114,10 @@ def chat():
     if "error" in stored_pages:
         return jsonify({"error": stored_pages["error"]}), 500
 
-    # Search stored content for a relevant response
-    for page in stored_pages:
-        if page.get("title") and page.get("content"):
-            if page["title"].lower() in user_input.lower() or page["content"].lower() in user_input.lower():
-                update_chat_history("user", user_input)
-                update_chat_history("assistant", page["content"])
-                return jsonify({"response": page["content"]})
-
-    # Default response for unrelated queries
-    default_response = "I'm here to assist with financial and support-related queries. Please ask a relevant question."
-    update_chat_history("user", user_input)
-    update_chat_history("assistant", default_response)
+    # Generate AI response
+    ai_response = ask_chatgpt(user_input)
+    return jsonify({"response": ai_response})
     
-    return jsonify({"response": default_response})
-
-
 # Route for feedback handling
 @app.route('/feedback', methods=['POST'])
 def feedback():
