@@ -4,6 +4,10 @@ from flask import Flask, request, jsonify, session
 import requests
 from dotenv import load_dotenv
 from flask_cors import CORS
+from fuzzywuzzy import fuzz
+import nltk
+from nltk.tokenize import word_tokenize
+from collections import defaultdict
 
 # Load environment variables
 load_dotenv()
@@ -13,6 +17,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 app.secret_key = "wertims2345"  # Needed for session handling
+nltk.download("punkt")
 
 # Store chat history in session
 def get_chat_history():
@@ -33,6 +38,42 @@ KEYWORD_RESPONSES = {
     "thank you": "You're welcome! Let me know if there's anything else.",
     "bye": "Goodbye! Have a great day!"
 }
+# Fetch uploaded files (documents) from API
+def fetch_uploaded_files():
+    api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/get-files"
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+        return response.json()  
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Error fetching uploaded files: {str(e)}"}
+        
+# Function to process documents into an index (word-based search)
+def index_uploaded_files(files):
+    index = defaultdict(list)
+    for file in files:
+        words = word_tokenize(file["file_content"].lower())  # Tokenize content
+        for word in set(words):  # Use unique words for indexing
+            index[word].append(file)
+    return index
+
+# Function to search using fuzzy matching
+def search_in_uploaded_files(user_input, indexed_files):
+    user_words = word_tokenize(user_input.lower())
+    best_match = None
+    best_score = 0
+
+    for word in user_words:
+        if word in indexed_files:  # Check if word exists in index
+            for file in indexed_files[word]:
+                match_score = fuzz.partial_ratio(user_input.lower(), file["file_content"].lower())
+                if match_score > best_score:
+                    best_score = match_score
+                    best_match = file["file_content"]
+
+    if best_match and best_score > 60:  # Only return if similarity score is high
+        return best_match[:300] + "..." if len(best_match) > 300 else best_match
+    return None  
 
 # Function to fetch chatbot settings from API
 def fetch_chatbox_settings():
@@ -98,26 +139,30 @@ def chat():
     if not user_input:
         return jsonify({"error": "Message is required"}), 400
 
-    # Fetch dynamic settings
-    settings = fetch_chatbox_settings()
-    if "error" in settings:
-        return jsonify({"error": settings["error"]}), 500
+    # Fetch uploaded documents
+    uploaded_files = fetch_uploaded_files()
+    if "error" in uploaded_files:
+        return jsonify({"error": uploaded_files["error"]}), 500
 
-    # Check for predefined responses
-    for keyword, response in KEYWORD_RESPONSES.items():
-        if keyword.lower() in user_input.lower():
-            update_chat_history("user", user_input)
-            update_chat_history("assistant", response)
-            return jsonify({"response": response})
+    # Index the uploaded files
+    indexed_files = index_uploaded_files(uploaded_files)
 
-    # Fetch stored page content
+    # Search for user input in indexed documents
+    matched_content = search_in_uploaded_files(user_input, indexed_files)
+    if matched_content:
+        update_chat_history("user", user_input)
+        update_chat_history("assistant", matched_content)
+        return jsonify({"response": matched_content})
+
+    # Fetch stored page content (fallback)
     stored_pages = fetch_stored_page_content()
     if "error" in stored_pages:
         return jsonify({"error": stored_pages["error"]}), 500
 
-    # Generate AI response
+    # Generate AI response as a last resort
     ai_response = ask_chatgpt(user_input)
     return jsonify({"response": ai_response})
+
     
 # Route for feedback handling
 @app.route('/feedback', methods=['POST'])
