@@ -1,5 +1,6 @@
 import os
 import openai
+import html
 from flask import Flask, request, jsonify, session
 import requests
 from dotenv import load_dotenv
@@ -61,8 +62,11 @@ def fetch_files_content():
         response = requests.get(api_url)
         response.raise_for_status()
         files_data = response.json()
-        # Extract file content
-        return "\n".join([file["file_content"] for file in files_data])
+        
+        # Extract and clean up file content
+        file_texts = [file["file_content"][:1000] + "..." if len(file["file_content"]) > 1000 else file["file_content"] for file in files_data]
+
+        return "\n\n".join(file_texts)
     except requests.exceptions.RequestException as e:
         return f"Error fetching files: {str(e)}"
         
@@ -84,13 +88,18 @@ Example:
 🤖 Response: "Ugh, that’s annoying! Let’s fix it. Do you see an error message?"
 """
 
-# Function to get AI response
+def clean_text(text):
+    return html.unescape(text)  # Decodes &#039; to '
+
 def ask_chatgpt(user_input, stored_pages, file_content):
     try:
         chat_history = get_chat_history()
         
+        # Clean file content
+        cleaned_file_content = clean_text(file_content)
+        
         # Combine stored page content and file content into context
-        combined_content = f"Stored Page Content:\n{stored_pages}\n\nFile Content:\n{file_content}"
+        combined_content = f"Stored Page Content:\n{stored_pages}\n\nFile Content:\n{cleaned_file_content}"
 
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -109,8 +118,6 @@ def ask_chatgpt(user_input, stored_pages, file_content):
         return ai_response
     except Exception as e:
         return f"Error communicating with ChatGPT: {str(e)}"
-
-
 # Route for chatbot interaction
 @app.route('/chat', methods=['POST'])
 def chat():
