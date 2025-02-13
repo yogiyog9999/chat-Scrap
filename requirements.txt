@@ -9,4 +9,5 @@ langdetect
 textblob
 googletrans==4.0.0-rc1
 fuzzywuzzy
-python-Levenshtein 
+python-Levenshtein
+nltk  # Added for tokenization
