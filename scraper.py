@@ -9,7 +9,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 from collections import defaultdict
 
-# Load environment variables
+# Load environment variables  
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
