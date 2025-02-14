@@ -37,7 +37,7 @@ KEYWORD_RESPONSES = {
 
 # Function to fetch chatbot settings from API
 def fetch_chatbox_settings():
-    api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/settings"
+    api_url = "https://isigmasolutions.com/wp-json/chatbox/v1/settings"
     try:
         response = requests.get(api_url)
         response.raise_for_status()
@@ -47,7 +47,7 @@ def fetch_chatbox_settings():
 
 # Function to fetch stored page content from API
 def fetch_stored_page_content():
-    api_url = "https://wallingford.devstage24x7.com/wp-json/chatbot/v1/pages"
+    api_url = "https://isigmasolutions.com/wp-json/chatbot/v1/pages"
     try:
         response = requests.get(api_url)
         response.raise_for_status()
@@ -57,7 +57,7 @@ def fetch_stored_page_content():
 
 # Function to fetch stored file content from API
 def fetch_files_content():
-    api_url = "https://wallingford.devstage24x7.com/wp-json/chatbox/v1/get-files"
+    api_url = "https://isigmasolutions.com/wp-json/chatbox/v1/get-files"
     try:
         response = requests.get(api_url)
         response.raise_for_status()
@@ -72,7 +72,7 @@ def fetch_files_content():
         
 # Prompt to guide the chatbot
 SYSTEM_PROMPT = """
-You are a friendly support agent for Wallingford Financial. You are a friendly support agent for Wallingford Financial. Your responses should ONLY use information from this website: https://wallingford.devstage24x7.com/.  
+You are a friendly support agent for isigmasolutions.com. You are a friendly support agent for isigmasolutions.com. Your responses should ONLY use information from this website: https://isigmasolutions.com.  
 Your responses should be engaging, empathetic, and under 300 characters. 
 - Acknowledge user concerns naturally.
 - Keep responses short, casual, and friendly.
