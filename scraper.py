@@ -107,7 +107,7 @@ def ask_chatgpt(user_input, stored_pages, file_content):
         ] + chat_history + [{"role": "user", "content": user_input}]
         
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=messages
         )
         ai_response = response['choices'][0]['message']['content']
