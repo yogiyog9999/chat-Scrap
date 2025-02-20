@@ -155,7 +155,7 @@ def chat():
 
     # If response is vague or empty, use the fallback message
     if not ai_response or any(phrase in ai_response for phrase in vague_responses):
-        ai_response = "Please call and contact on this number: +1-234-567-8900."
+        ai_response = "Please call and contact on this number: +1-877-974-4744"
         
     return jsonify({"response": ai_response})
 
