@@ -32,7 +32,8 @@ KEYWORD_RESPONSES = {
     "hello": "Hi there! How can I help?",
     "hey": "Hey! What can I do for you?",
     "thank you": "You're welcome! Let me know if there's anything else.",
-    "bye": "Goodbye! Have a great day!"
+    "bye": "Goodbye! Have a great day!",
+    "Something else": "Hi there! How can I help?"
 }
 
 # Function to fetch chatbot settings from API
@@ -172,10 +173,20 @@ def feedback():
 # Function to refine responses based on feedback
 def refine_response(original_response):
     try:
+        # Fetch stored page content and file content
+        stored_pages = fetch_stored_page_content()
+        file_content = fetch_files_content()
+
+        if "error" in stored_pages:
+            return f"Error fetching stored pages: {stored_pages['error']}"
+        if "Error" in file_content:
+            return f"Error fetching files: {file_content}"
+
         prompt = f"Refine the following response to be clearer and more helpful:\n\n{original_response}"
-        return ask_chatgpt(prompt)
+        return ask_chatgpt(prompt, stored_pages, file_content)
     except Exception as e:
         return f"Error refining response: {str(e)}"
+
 
 # Route to clear chat history
 @app.route('/clear-history', methods=['POST'])
