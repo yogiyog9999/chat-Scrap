@@ -150,6 +150,13 @@ def chat():
 
     # Generate AI response
     ai_response = ask_chatgpt(user_input, stored_pages, file_content)
+    # List of vague responses to filter
+    vague_responses = ["Oh no!", "I'm not sure", "I don't know", "Sorry, I can't help with that", "Hmm..."]
+
+    # If response is vague or empty, use the fallback message
+    if not ai_response or any(phrase in ai_response for phrase in vague_responses):
+        ai_response = "Please call and contact on this number: +1-234-567-8900."
+        
     return jsonify({"response": ai_response})
 
 # Route for feedback handling
